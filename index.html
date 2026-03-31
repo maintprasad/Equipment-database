@@ -921,8 +921,8 @@ function loadCache() {
 }
 
 // ═══════════════════════════════════════════════════
-// SYNC — pakai fn=read yang sudah ada di GAS (eqReadAll)
-// Response: { ok, data: { units, areas, equipment, parts, repairHistory, ... } }
+// SYNC — pakai action=getParts sesuai GAS handler
+// Response: { ok, data: [...] } atau { ok, data: { parts, units, areas, equipment, ... } }
 // ═══════════════════════════════════════════════════
 async function syncAll() {
   if (_syncing) return;
@@ -931,23 +931,27 @@ async function syncAll() {
   pill.className='api-pill warn'; pill.textContent='⟳ Memuat...';
 
   try {
-    // fn=read sudah ada di GAS, mengembalikan semua data sekaligus
-    const res  = await fetch(API_URL+'?fn=read', { signal: AbortSignal.timeout(30000) });
+    // action=getParts sesuai GAS handler
+    const res  = await fetch(API_URL+'?action=getParts', { signal: AbortSignal.timeout(30000) });
     const json = await res.json();
 
-    // GAS mengembalikan { ok, data: { units, areas, equipment, parts, repairHistory, ... } }
-    const ok   = json.ok || json.success;
-    const d    = json.data;
+    // GAS mengembalikan { ok, data: [...parts] } atau { ok, data: { units, areas, equipment, parts, ... } }
+    const ok = json.ok || json.success;
+    const d  = json.data;
 
     if (ok && d) {
-      if (d.units)     DB.units     = d.units;
-      if (d.areas)     DB.areas     = d.areas;
-      if (d.equipment) DB.equipment = d.equipment;
-      if (d.parts)     DB.parts     = d.parts;
-      // GAS pakai key 'repairHistory', HTML pakai DR_HISTORY
-      DR_HISTORY = d.repairHistory || d.history || [];
+      // Handle dua format: data array langsung (parts only) atau data object lengkap
+      if (Array.isArray(d)) {
+        DB.parts = d;
+      } else {
+        if (d.units)     DB.units     = d.units;
+        if (d.areas)     DB.areas     = d.areas;
+        if (d.equipment) DB.equipment = d.equipment;
+        if (d.parts)     DB.parts     = d.parts;
+        DR_HISTORY = d.repairHistory || d.history || [];
+        try{ localStorage.setItem(HIST_CACHE_KEY, JSON.stringify(DR_HISTORY)); }catch(e){}
+      }
       saveCache();
-      try{ localStorage.setItem(HIST_CACHE_KEY, JSON.stringify(DR_HISTORY)); }catch(e){}
       pill.className='api-pill ok';
       pill.textContent='✓ '+DB.equipment.length+' equip · '+DB.parts.length+' parts';
       toast('Data berhasil dimuat dari Sheets','success');
@@ -1096,7 +1100,7 @@ function renderTree() {
     const areas = DB.areas.filter(a=>a.unitId===unit.id);
     const uMatch = !q || unit.name.toLowerCase().includes(q) || areas.some(a=>a.name.toLowerCase().includes(q)||DB.equipment.filter(e=>e.areaId===a.id).some(e=>e.name.toLowerCase().includes(q)));
     if (!uMatch) return;
-    html += row(8,'🏭',unit.name,uParts,uExp,false,`navTo('unit','${unit.id}','${unit.name.replace(/'/g,"\'")}')`,NAV.unitId===unit.id&&!NAV.areaId);
+    html += row(8,'🏭',unit.name,uParts,uExp,false,`navTo('unit','${unit.id.replace(/'/g,"\\'")}','${unit.name.replace(/'/g,"\\'")}')`,NAV.unitId===unit.id&&!NAV.areaId);
     if (uExp||q) {
       areas.forEach(area => {
         const aExp = TREE_STATE[unit.id+'/'+area.id] !== false;
@@ -1104,13 +1108,13 @@ function renderTree() {
         const aParts = DB.parts.filter(p=>equips.some(e=>e.id===p.equipId)).length;
         const aMatch = !q || area.name.toLowerCase().includes(q) || equips.some(e=>e.name.toLowerCase().includes(q));
         if (!aMatch) return;
-        html += row(24,'📂',area.name,aParts,aExp,false,`navAreaFromSidebar('${unit.id}','${unit.name.replace(/'/g,"\'")}','${area.id}','${area.name.replace(/'/g,"\'")}')`,NAV.areaId===area.id&&!NAV.equipId);
+        html += row(24,'📂',area.name,aParts,aExp,false,`navAreaFromSidebar('${unit.id.replace(/'/g,"\\'")}','${unit.name.replace(/'/g,"\\'")}','${area.id.replace(/'/g,"\\'")}','${area.name.replace(/'/g,"\\'")}')`,NAV.areaId===area.id&&!NAV.equipId);
         if (aExp||q) {
           equips.forEach(eq => {
             if (q && !eq.name.toLowerCase().includes(q) && !area.name.toLowerCase().includes(q) && !unit.name.toLowerCase().includes(q)) return;
             const pCnt = partsFor(eq.id).length;
             const icon = eq.category==='Electrical'?'⚡':eq.category==='Mechanical'?'⚙️':'🔧';
-            html += row(40,icon,eq.name,pCnt,false,true,`navEquipFromSidebar('${unit.id}','${unit.name.replace(/'/g,"\'")}','${area.id}','${area.name.replace(/'/g,"\'")}','${eq.id}','${eq.name.replace(/'/g,"\'")}')`,NAV.equipId===eq.id);
+            html += row(40,icon,eq.name,pCnt,false,true,`navEquipFromSidebar('${unit.id.replace(/'/g,"\\'")}','${unit.name.replace(/'/g,"\\'")}','${area.id.replace(/'/g,"\\'")}','${area.name.replace(/'/g,"\\'")}','${eq.id.replace(/'/g,"\\'")}','${eq.name.replace(/'/g,"\\'")}')`,NAV.equipId===eq.id);
           });
         }
       });
@@ -1449,7 +1453,8 @@ function renderAllParts() {
   if (fLow) data = data.filter(p=>p.minStock&&parseFloat(p.stock||0)<parseFloat(p.minStock));
 
   data.sort((a,b)=>{
-    const av=String(a[ALL_SORT_KEY]||''), bv=String(b[ALL_SORT_KEY]||'');
+    const av = ALL_SORT_KEY==='id' ? partId(a) : String(a[ALL_SORT_KEY]||'');
+    const bv = ALL_SORT_KEY==='id' ? partId(b) : String(b[ALL_SORT_KEY]||'');
     if(ALL_SORT_KEY==='stock'||ALL_SORT_KEY==='minStock')
       return ALL_SORT_ASC?parseFloat(av||0)-parseFloat(bv||0):parseFloat(bv||0)-parseFloat(av||0);
     return ALL_SORT_ASC?av.localeCompare(bv):bv.localeCompare(av);
@@ -1465,7 +1470,7 @@ function renderAllParts() {
   document.getElementById('allPartsWrap').innerHTML=`
     <div class="ftable-wrap"><table class="ftable">
       <thead><tr>
-        ${th('Id','ID')}${th('name','Nama Part')}${th('equipId','Equipment')}
+        ${th('id','ID')}${th('name','Nama Part')}${th('equipId','Equipment')}
         ${th('category','Kategori')}${th('brand','Brand')}${th('oem','Spesifikasi')}
         ${th('stock','Stok')}<th>UoM</th>${th('condition','Kondisi')}
         <th>Lokasi</th>
@@ -1506,9 +1511,9 @@ function allPageNav(d){ ALL_PAGE+=d; renderAllParts(); }
 
 function exportAllParts() {
   if(!DB.parts.length){ toast('Tidak ada data','error'); return; }
-  const cols=['id','name','equipId','category','brand','oem','stock','minStock','uom','condition','location','notes'];
+  const cols=['name','equipId','category','brand','oem','stock','minStock','uom','condition','location','notes'];
   const hdr=['ID','Nama Part','Equipment ID','Kategori','Brand','Spesifikasi','Stok','Stok Min','UoM','Kondisi','Lokasi','Catatan'];
-  const csv=[hdr,...DB.parts.map(p=>cols.map(c=>'"'+String(p[c]||'').replace(/"/g,'""')+'"'))].map(r=>r.join(',')).join('\n');
+  const csv=[hdr,...DB.parts.map(p=>[partId(p),...cols.map(c=>'"'+String(p[c]||'').replace(/"/g,'""')+'"')])].map(r=>r.join(',')).join('\n');
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'}));
   a.download='Equipment_Parts.csv'; a.click();
@@ -1595,7 +1600,7 @@ function saveCfgFromGas(){
 // tapi di DB ini read-only jadi form tidak dipakai.
 // ═══════════════════════════════════════════════════
 // PART FORM — Tambah & Edit Part langsung dari HTML
-// Menyimpan ke Google Sheets via fn=upsert
+// Menyimpan ke Google Sheets via action=upsertPart
 // ═══════════════════════════════════════════════════
 
 function openPartForm(pid) {
@@ -1691,10 +1696,10 @@ async function savePart() {
   saveBtn.disabled = true;
 
   try {
-    const res  = await fetch(API_URL + '?fn=upsert', {
+    const res  = await fetch(API_URL + '?action=upsertPart', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ sheet: 'EQ_PARTS', row }),
+      body:    JSON.stringify({ sheet: 'EQ_PARTS', ...row }),
       signal:  AbortSignal.timeout(20000),
     });
     const json = await res.json();
@@ -1749,7 +1754,7 @@ async function deletePartFromForm() {
   saveBtn.disabled = true;
 
   try {
-    const res  = await fetch(API_URL + '?fn=delete', {
+    const res  = await fetch(API_URL + '?action=deletePart', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify({ sheet: 'EQ_PARTS', id: pid }),
