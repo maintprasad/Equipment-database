@@ -1,0 +1,1870 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Prasad Seeds — Equipment Database</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+/* ═══════════════════════════════════════════════════
+   VARIABLES & RESET
+═══════════════════════════════════════════════════ */
+:root {
+  --bg:#f4f7f4;--bg2:#ffffff;--bg3:#eef3ee;--border:#d4e0d4;
+  --navy:#1a3a6b;--green:#4a9e3f;--green2:#3a8a30;--green-light:#e8f5e8;
+  --accent:#4a9e3f;--red:#c0392b;--blue:#2b6cb8;--teal:#2a7a5a;
+  --purple:#b88ff7;--orange:#fb8c3a;--gold:#c8922a;
+  --text:#1a2a1a;--text2:#3a5a3a;--text3:#7a9a7a;
+  --r:8px;--shadow:0 4px 16px rgba(26,58,107,.1);
+}
+body.dark {
+  --bg:#0f180f;--bg2:#182018;--bg3:#1e2a1e;--border:#2a3e2a;
+  --navy:#2a4a8a;--green:#5ab050;--green2:#4a9e3f;--green-light:#1a2a1a;
+  --text:#d4e8d4;--text2:#a8c8a8;--text3:#5a7a5a;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:14px;min-height:100vh}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--bg3)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+/* ═══════════════════════════════════════════════════
+   TOPBAR
+═══════════════════════════════════════════════════ */
+.topbar{
+  position:sticky;top:0;z-index:200;background:var(--navy);
+  border-bottom:1px solid rgba(74,158,63,.4);
+  display:flex;align-items:center;gap:12px;padding:0 20px;height:54px;
+}
+.brand{display:flex;align-items:center;gap:10px;white-space:nowrap}
+.brand-dot{width:8px;height:8px;background:var(--accent);border-radius:50%;animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+.brand-name{font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:13px;color:#fff;letter-spacing:.04em}
+.brand-sub{font-size:10px;color:rgba(255,255,255,.45);margin-left:6px;font-weight:400}
+.top-tab{background:none;border:none;color:rgba(255,255,255,.55);font-family:'IBM Plex Sans',sans-serif;font-size:12px;padding:5px 11px;border-radius:5px;cursor:pointer;transition:all .15s;white-space:nowrap}
+.top-tab:hover{color:rgba(255,255,255,.9);background:rgba(255,255,255,.1)}
+.top-tab.active{color:#fff;border-bottom:2px solid var(--accent)}
+.top-right{display:flex;align-items:center;gap:8px;margin-left:auto}
+.api-pill{font-family:'IBM Plex Mono',monospace;font-size:10px;padding:3px 8px;border-radius:4px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:rgba(255,255,255,.5);white-space:nowrap}
+.api-pill.ok{border-color:rgba(74,158,63,.5);background:rgba(74,158,63,.2);color:#7ddf6e}
+.api-pill.err{border-color:rgba(192,57,43,.4);background:rgba(192,57,43,.15);color:#e07070}
+.api-pill.warn{border-color:rgba(251,140,58,.4);background:rgba(251,140,58,.1);color:#f0b05a}
+.sync-btn{background:rgba(255,255,255,.1);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.2);font-family:'IBM Plex Mono',monospace;font-size:14px;width:32px;height:32px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.sync-btn:hover{background:rgba(74,158,63,.3);color:#fff;border-color:rgba(74,158,63,.5)}
+.dark-btn{background:none;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.6);font-size:14px;width:30px;height:30px;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.dark-btn:hover{background:rgba(255,255,255,.1)}
+
+/* ═══════════════════════════════════════════════════
+   EXPLORER — Windows 11 File Explorer style
+   Layout: sidebar kiri (tree) + main panel (folder/parts grid)
+═══════════════════════════════════════════════════ */
+
+/* Sidebar tree */
+.sidebar{width:220px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;overflow:hidden;user-select:none}
+.sidebar-search{padding:10px 12px;border-bottom:1px solid var(--border);flex-shrink:0}
+.sb-search-wrap{display:flex;align-items:center;gap:6px;background:var(--bg3);
+  border:1px solid var(--border);border-radius:6px;padding:6px 10px}
+.sb-search-wrap input{background:none;border:none;outline:none;font-size:12px;
+  color:var(--text);width:100%;font-family:'IBM Plex Sans',sans-serif}
+.sidebar-tree{flex:1;overflow-y:auto;padding:4px 0}
+
+/* Tree node */
+.tn{display:flex;align-items:center;gap:0;padding:0;cursor:pointer}
+.tn-row{display:flex;align-items:center;gap:5px;flex:1;padding:5px 8px 5px 0;
+  border-radius:6px;transition:background .12s;min-width:0}
+.tn-row:hover{background:var(--bg3)}
+.tn-row.active{background:rgba(74,158,63,.12);color:var(--green2)}
+.tn-indent{flex-shrink:0}
+.tn-toggle{width:18px;height:18px;display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;font-size:9px;color:var(--text3);border-radius:3px;transition:all .15s}
+.tn-toggle:hover{background:var(--border);color:var(--text)}
+.tn-toggle.open{transform:rotate(90deg)}
+.tn-toggle.leaf{opacity:0;pointer-events:none}
+.tn-icon{font-size:14px;flex-shrink:0}
+.tn-label{font-size:12px;color:var(--text2);flex:1;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap;line-height:1.4}
+.tn-row.active .tn-label{color:var(--green2);font-weight:600}
+.tn-badge{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text3);
+  background:var(--bg3);border:1px solid var(--border);padding:1px 5px;
+  border-radius:8px;flex-shrink:0;margin-left:2px}
+
+/* Main panel */
+.exp-main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+
+/* Toolbar bar (address bar + actions) */
+.exp-toolbar{display:flex;align-items:center;gap:8px;padding:8px 14px;
+  border-bottom:1px solid var(--border);background:var(--bg2);flex-shrink:0;flex-wrap:wrap}
+.exp-breadcrumb{display:flex;align-items:center;gap:4px;flex:1;min-width:0;
+  background:var(--bg3);border:1px solid var(--border);border-radius:7px;
+  padding:5px 12px;overflow:hidden}
+.exp-bc-btn{background:none;border:none;font-size:12px;color:var(--text2);cursor:pointer;
+  padding:0 2px;border-radius:3px;transition:color .12s;white-space:nowrap;
+  font-family:'IBM Plex Sans',sans-serif}
+.exp-bc-btn:hover{color:var(--green2)}
+.exp-bc-btn.active{color:var(--text);font-weight:600}
+.exp-bc-sep{color:var(--text3);font-size:12px;flex-shrink:0}
+.exp-bc-home{font-size:14px}
+
+/* Content area */
+.exp-content{flex:1;overflow-y:auto;padding:14px 16px}
+
+/* Folder/item grid */
+.exp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-bottom:20px}
+.exp-folder{display:flex;flex-direction:column;align-items:center;gap:6px;
+  padding:14px 8px 12px;border-radius:10px;cursor:pointer;
+  background:var(--bg2);border:1.5px solid var(--border);
+  transition:all .15s;text-align:center;position:relative}
+.exp-folder:hover{border-color:var(--green);background:var(--green-lt);
+  transform:translateY(-2px);box-shadow:0 4px 12px rgba(74,158,63,.12)}
+.exp-folder.selected{border-color:var(--green);background:rgba(74,158,63,.08);
+  box-shadow:0 0 0 2px rgba(74,158,63,.2)}
+.exp-folder-icon{font-size:32px;line-height:1}
+.exp-folder-name{font-size:11px;color:var(--text);font-weight:500;
+  word-break:break-word;line-height:1.3;max-width:100%}
+.exp-folder-meta{font-size:10px;color:var(--text3);font-family:'IBM Plex Mono',monospace}
+.exp-folder-badge{position:absolute;top:6px;right:6px;background:var(--accent);
+  color:#fff;font-size:9px;font-family:'IBM Plex Mono',monospace;
+  padding:1px 5px;border-radius:8px;font-weight:600}
+
+/* Parts list (inside equipment folder) */
+.exp-section-title{font-size:10px;font-family:'IBM Plex Mono',monospace;color:var(--text3);
+  letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px;padding-bottom:6px;
+  border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.exp-parts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-bottom:20px}
+.exp-part-card{background:var(--bg2);border:1.5px solid var(--border);border-radius:10px;
+  padding:14px;cursor:pointer;transition:all .15s;position:relative}
+.exp-part-card:hover{border-color:var(--green);box-shadow:0 3px 10px rgba(74,158,63,.1);
+  transform:translateY(-1px)}
+.exp-part-card.selected{border-color:var(--green);background:rgba(74,158,63,.06);
+  box-shadow:0 0 0 2px rgba(74,158,63,.18)}
+.exp-part-card::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;
+  border-radius:10px 0 0 10px;background:var(--border)}
+.exp-part-card.selected::before,.exp-part-card:hover::before{background:var(--green)}
+.exp-part-icon{font-size:22px;margin-bottom:8px}
+.exp-part-name{font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;line-height:1.3}
+.exp-part-id{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--accent);margin-bottom:6px}
+.exp-part-chips{display:flex;gap:4px;flex-wrap:wrap}
+
+/* Part card edit button */
+.part-edit-btn{position:absolute;top:7px;right:7px;background:var(--bg3);border:1px solid var(--border);
+  color:var(--text3);border-radius:5px;width:22px;height:22px;font-size:11px;cursor:pointer;
+  display:none;align-items:center;justify-content:center;transition:all .15s}
+.exp-part-card:hover .part-edit-btn{display:flex}
+.part-edit-btn:hover{background:var(--navy);color:#fff;border-color:var(--navy)}
+.exp-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  height:100%;gap:12px;color:var(--text3);text-align:center;padding:40px}
+.exp-empty-icon{font-size:52px}
+.exp-empty-title{font-size:15px;font-weight:600;color:var(--text2)}
+.exp-empty-sub{font-size:12px}
+
+/* Detail header */
+.detail-hdr{background:var(--navy);border-radius:12px;padding:22px 24px;margin-bottom:16px;position:relative;overflow:hidden}
+.detail-hdr::after{content:'';position:absolute;right:-24px;top:-24px;width:140px;height:140px;border-radius:50%;background:rgba(255,255,255,.04)}
+.detail-hdr-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px}
+.detail-part-name{font-size:20px;font-weight:700;color:#fff}
+.detail-part-code{font-family:'IBM Plex Mono',monospace;font-size:11px;color:rgba(255,255,255,.5);margin-top:4px;letter-spacing:.05em}
+.detail-equip-path{font-size:11px;color:rgba(255,255,255,.4);margin-top:6px}
+.detail-qty-badge{
+  flex-shrink:0;background:rgba(74,158,63,.25);border:1px solid rgba(74,158,63,.4);
+  border-radius:10px;padding:8px 16px;text-align:center;
+}
+.detail-qty-num{font-size:28px;font-weight:700;font-family:'IBM Plex Mono',monospace;color:#7ddf6e;line-height:1}
+.detail-qty-lbl{font-size:9px;color:rgba(255,255,255,.4);letter-spacing:.1em;text-transform:uppercase;margin-top:3px}
+.detail-breadcrumb{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.bc-item{font-family:'IBM Plex Mono',monospace;font-size:10px;padding:3px 8px;border-radius:4px;background:rgba(255,255,255,.08);color:rgba(255,255,255,.6)}
+.bc-sep{color:rgba(255,255,255,.25);font-size:11px}
+
+/* Detail sections */
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
+.detail-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:16px}
+.detail-card.full{grid-column:1/-1}
+.detail-card-title{font-size:10px;font-family:'IBM Plex Mono',monospace;color:var(--text3);letter-spacing:.09em;text-transform:uppercase;margin-bottom:12px}
+.detail-row{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px}
+.detail-row:last-child{border-bottom:none}
+.dr-label{color:var(--text3);flex-shrink:0}
+.dr-val{color:var(--text);font-weight:500;text-align:right}
+
+/* Spec grid */
+.spec-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.spec-item{background:var(--bg3);border-radius:6px;padding:10px 12px}
+.spec-key{font-size:10px;font-family:'IBM Plex Mono',monospace;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px}
+.spec-val{font-size:13px;font-weight:600;color:var(--text)}
+
+/* History section */
+.history-list{display:flex;flex-direction:column;gap:8px}
+.history-item{
+  background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);
+  padding:12px 14px;border-left:3px solid var(--border);
+}
+.history-item.hi-ts{border-left-color:var(--red)}
+.history-item.hi-pm{border-left-color:var(--blue)}
+.history-item.hi-imp{border-left-color:var(--green)}
+.hi-hdr{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap}
+.hi-date{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text3)}
+.hi-desc{font-size:12px;color:var(--text2);line-height:1.5;margin-bottom:4px}
+.hi-meta{display:flex;gap:8px;flex-wrap:wrap}
+.hi-tag{font-size:10px;padding:2px 7px;border-radius:4px;background:var(--bg3);color:var(--text3);border:1px solid var(--border)}
+.history-empty{padding:20px;text-align:center;color:var(--text3);font-size:12px}
+
+/* ═══════════════════════════════════════════════════
+   BUTTONS & FORMS
+═══════════════════════════════════════════════════ */
+.btn-primary{background:var(--green);color:#fff;border:none;border-radius:6px;padding:7px 14px;font-size:12px;font-family:'IBM Plex Sans',sans-serif;font-weight:600;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:5px}
+.btn-primary:hover{background:var(--green2);transform:translateY(-1px)}
+.btn-ghost{background:none;color:var(--text2);border:1px solid var(--border);border-radius:6px;padding:6px 12px;font-size:12px;font-family:'IBM Plex Sans',sans-serif;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:5px}
+.btn-ghost:hover{border-color:var(--green);color:var(--green2);background:var(--green-light)}
+.btn-danger{background:none;color:var(--red);border:1px solid rgba(192,57,43,.3);border-radius:6px;padding:6px 12px;font-size:12px;font-family:'IBM Plex Sans',sans-serif;cursor:pointer;transition:all .15s}
+.btn-danger:hover{background:rgba(192,57,43,.08)}
+.btn-sm{padding:4px 9px;font-size:11px}
+
+/* ═══════════════════════════════════════════════════
+   MODAL
+═══════════════════════════════════════════════════ */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(3px);z-index:500;align-items:center;justify-content:center;padding:20px}
+.overlay.open{display:flex}
+.modal{background:var(--bg2);border-radius:16px;width:100%;max-width:540px;max-height:92vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.modal-hdr{display:flex;align-items:center;justify-content:space-between;padding:20px 24px 0}
+.modal-title{font-size:16px;font-weight:700;color:var(--navy)}
+.modal-close{background:none;border:none;font-size:18px;cursor:pointer;color:var(--text3);padding:4px;line-height:1;transition:color .15s}
+.modal-close:hover{color:var(--red)}
+.modal-body{padding:20px 24px 24px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.fg{display:flex;flex-direction:column;gap:4px}
+.fg.full{grid-column:1/-1}
+.flabel{font-size:11px;font-family:'IBM Plex Mono',monospace;color:var(--text2);letter-spacing:.06em;text-transform:uppercase}
+.finput,.fsel2{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:8px 11px;font-size:13px;color:var(--text);font-family:'IBM Plex Sans',sans-serif;outline:none;width:100%;transition:border-color .15s}
+.finput:focus,.fsel2:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(74,158,63,.1)}
+.ftextarea{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:9px 12px;font-size:13px;color:var(--text);font-family:'IBM Plex Sans',sans-serif;outline:none;width:100%;resize:vertical;min-height:72px;transition:border-color .15s}
+.ftextarea:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(74,158,63,.1)}
+.ferr{font-size:11px;color:var(--red);min-height:15px}
+.fhint{font-size:10px;color:var(--text3)}
+.form-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)}
+
+/* ═══════════════════════════════════════════════════
+   TOAST
+═══════════════════════════════════════════════════ */
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:999;display:flex;flex-direction:column;gap:8px;pointer-events:none;max-width:380px;width:calc(100% - 40px)}
+.toast-msg{background:var(--navy);color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;box-shadow:0 4px 16px rgba(0,0,0,.25);animation:toastIn .25s ease;display:flex;align-items:center;gap:8px}
+.toast-msg.success{background:var(--green2)}
+.toast-msg.error{background:var(--red)}
+.toast-msg.info{background:var(--blue)}
+@keyframes toastIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* ═══════════════════════════════════════════════════
+   DARK MODE
+═══════════════════════════════════════════════════ */
+body.dark .panel-tree,body.dark .panel-parts{background:var(--bg2);border-color:var(--border)}
+body.dark .panel-detail{background:var(--bg)}
+body.dark .part-item,body.dark .detail-card,body.dark .history-item{background:var(--bg2);border-color:var(--border)}
+body.dark .modal{background:var(--bg2)}
+body.dark .finput,body.dark .fsel2,body.dark .ftextarea{background:var(--bg3);border-color:var(--border);color:var(--text)}
+
+/* ═══════════════════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════════════════ */
+@media(max-width:900px){
+  .app-layout{grid-template-columns:200px 1fr}
+  .panel-detail{display:none}
+  .panel-detail.mobile-show{display:block;position:fixed;inset:0;top:54px;z-index:100;overflow-y:auto;padding:16px}
+}
+@media(max-width:600px){
+  .app-layout{grid-template-columns:1fr}
+  .panel-tree{display:none}
+  .panel-tree.mobile-show{display:flex;position:fixed;inset:0;top:54px;z-index:200}
+}
+/* ── Extra pages ── */
+.extra-page{display:none;padding:20px;overflow-y:auto;height:calc(100vh - 54px)}
+.extra-page.active{display:block}
+.pg-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px}
+.pg-title{font-size:20px;font-weight:700;color:var(--navy)}
+.pg-sub{font-size:12px;color:var(--text3);margin-top:2px}
+
+/* Overview stat cards */
+.ov-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-bottom:16px}
+.ov-stat{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;position:relative;overflow:hidden;cursor:pointer;transition:all .15s}
+.ov-stat:hover{border-color:var(--green);transform:translateY(-2px);box-shadow:var(--shadow)}
+.ov-stat::after{content:'';position:absolute;top:0;left:0;width:3px;height:100%;border-radius:var(--r) 0 0 var(--r)}
+.c-g::after{background:var(--green)}.c-r::after{background:var(--red)}.c-b::after{background:var(--blue)}.c-o::after{background:var(--orange)}
+.ov-lbl{font-size:10px;font-family:'IBM Plex Mono',monospace;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:7px}
+.ov-val{font-size:26px;font-weight:700;color:var(--navy);line-height:1}
+.ov-sub{font-size:11px;color:var(--text3);margin-top:5px}
+
+/* All-parts full table */
+.ftable-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;overflow-x:auto}
+.ftable{width:100%;border-collapse:collapse;font-size:12px;min-width:900px}
+.ftable th{background:var(--navy);color:rgba(255,255,255,.8);text-align:left;padding:9px 12px;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.09em;text-transform:uppercase;white-space:nowrap;cursor:pointer;user-select:none}
+.ftable th:hover{color:#fff}
+.ftable td{padding:8px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
+.ftable tbody tr{cursor:pointer;transition:background .1s}.ftable tbody tr:hover{background:var(--green-light)}
+.alert-row{background:rgba(192,57,43,.05)!important}.warn-row{background:rgba(251,140,58,.05)!important}
+.ftable-toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.pagination{display:flex;align-items:center;gap:6px;margin-top:12px;flex-wrap:wrap}
+.page-info{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text3)}
+.pnav{background:var(--bg2);border:1px solid var(--border);color:var(--text2);padding:5px 10px;border-radius:5px;font-size:11px;cursor:pointer;transition:all .15s}
+.pnav:hover:not(:disabled){border-color:var(--green);color:var(--green2)}.pnav:disabled{opacity:.35;cursor:not-allowed}
+
+/* History table in modal */
+.htable{width:100%;border-collapse:collapse;font-size:12px;min-width:700px}
+.htable th{text-align:left;padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);border-bottom:1.5px solid var(--border);cursor:pointer;user-select:none;white-space:nowrap}
+.htable th:hover{color:var(--text2)}.htable th.sorted{color:var(--navy)}
+.htable td{padding:7px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
+.htable tr:last-child td{border-bottom:none}.htable tbody tr{cursor:pointer;transition:background .1s}
+.htable tbody tr:hover{background:var(--green-light)}
+.htable-wrap{overflow-x:auto;border-radius:var(--r);border:1px solid var(--border)}
+.hist-expand td{background:var(--bg3)!important;cursor:default}
+
+/* Condition bar */
+.cond-bar-wrap{height:5px;background:var(--border);border-radius:3px;overflow:hidden;flex:1;min-width:50px}
+.cond-bar-fill{height:100%;border-radius:3px;transition:width .5s}
+
+/* Image grid & lightbox */
+.img-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.img-thumb{aspect-ratio:1;border-radius:6px;overflow:hidden;cursor:pointer;background:var(--bg3);border:1px solid var(--border);position:relative;transition:all .15s}
+.img-thumb:hover{border-color:var(--green);transform:scale(1.02)}
+.img-thumb img{width:100%;height:100%;object-fit:cover}
+.img-add{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--text3);font-size:12px;cursor:pointer;transition:all .15s;aspect-ratio:1;border-radius:6px;border:1.5px dashed var(--border);background:var(--bg3)}
+.img-add:hover{border-color:var(--green);color:var(--green2);background:var(--green-light)}
+.img-del{position:absolute;top:4px;right:4px;background:rgba(192,57,43,.85);color:#fff;border:none;border-radius:4px;width:20px;height:20px;font-size:11px;cursor:pointer;display:none;align-items:center;justify-content:center}
+.img-thumb:hover .img-del{display:flex}
+.lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:600;align-items:center;justify-content:center}
+.lightbox.open{display:flex}
+.lightbox img{max-width:90vw;max-height:90vh;border-radius:8px;object-fit:contain}
+.lb-close{position:absolute;top:16px;right:20px;background:none;border:none;color:#fff;font-size:30px;cursor:pointer;opacity:.7;transition:opacity .15s}
+.lb-close:hover{opacity:1}
+
+/* Mini stats row */
+.mini-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.mini-stat{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:10px 12px;text-align:center}
+.ms-val{font-size:18px;font-weight:700;font-family:'IBM Plex Mono',monospace;color:var(--navy);line-height:1}
+.ms-lbl{font-size:9px;font-family:'IBM Plex Mono',monospace;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-top:4px}
+
+/* GAS setup page */
+.gas-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:18px 20px;margin-bottom:14px}
+.gas-title{font-size:14px;font-weight:700;color:var(--navy);margin-bottom:6px}
+.gas-sub{font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:12px}
+.code-block{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:12px 14px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--teal);white-space:pre-wrap;overflow-x:auto;line-height:1.7;max-height:280px;overflow-y:auto}
+.step-item{display:flex;align-items:flex-start;gap:8px;margin-bottom:9px;font-size:13px;color:var(--text2)}
+.step-num{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--navy);color:#fff;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px}
+
+/* Stok alert */
+.stok-alert{background:rgba(192,57,43,.07);border:1px solid rgba(192,57,43,.25);border-radius:var(--r);padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px;color:var(--red)}
+
+/* btn-white for dark header actions */
+.btn-white{background:rgba(255,255,255,.12);color:rgba(255,255,255,.85);border:1px solid rgba(255,255,255,.2);border-radius:6px;padding:5px 12px;font-size:11px;font-family:'IBM Plex Sans',sans-serif;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:4px}
+.btn-white:hover{background:rgba(255,255,255,.22)}
+
+body.dark .ov-stat,body.dark .mini-stat,body.dark .gas-card,body.dark .ftable-wrap{background:var(--bg2)}
+body.dark .ftable th{background:#0d1a0d}
+body.dark .ftable tbody tr:hover,body.dark .htable tbody tr:hover{background:var(--bg3)}
+</style>
+</head>
+<body>
+
+<!-- ═══ TOPBAR ═══ -->
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-dot"></div>
+    <span class="brand-name">PRASAD SEEDS</span>
+    <span class="brand-sub">Equipment DB</span>
+  </div>
+  <div style="display:flex;gap:2px;margin-left:14px">
+    <button class="top-tab active" id="tab-explorer" onclick="switchPage('explorer')">🗂 Explorer</button>
+    <button class="top-tab" id="tab-overview" onclick="switchPage('overview')">📊 Overview</button>
+    <button class="top-tab" id="tab-all" onclick="switchPage('all-parts')">📋 Semua Parts</button>
+    <button class="top-tab" id="tab-gas" onclick="switchPage('gas-setup')">⚙ Setup GAS</button>
+  </div>
+  <div class="top-right">
+    <span class="api-pill" id="apiPill">⚠ Konfigurasi API</span>
+    <button class="sync-btn" onclick="syncAll()" title="Sync data">↻</button>
+    <button class="dark-btn" onclick="toggleDark()" title="Dark mode">🌙</button>
+  </div>
+</div>
+
+<!-- ═══ APP LAYOUT (Explorer) — Windows 11 File Explorer style ═══ -->
+<div id="pg-explorer" style="display:flex;height:calc(100vh - 54px);overflow:hidden">
+
+  <!-- ─── Sidebar: tree nav ─── -->
+  <div class="sidebar">
+    <div class="sidebar-search">
+      <div class="sb-search-wrap">
+        <span style="color:var(--text3)">⌕</span>
+        <input id="treeQ" placeholder="Cari equipment..." oninput="renderTree()"/>
+      </div>
+    </div>
+    <div class="sidebar-tree" id="treeBody">
+      <div style="padding:20px;text-align:center;color:var(--text3);font-size:12px">⟳ Memuat...</div>
+    </div>
+  </div>
+
+  <!-- ─── Main panel ─── -->
+  <div class="exp-main">
+    <!-- Address bar + toolbar -->
+    <div class="exp-toolbar">
+      <div class="exp-breadcrumb" id="expBreadcrumb">
+        <button class="exp-bc-btn exp-bc-home" onclick="navTo('root')" title="Home">🏠</button>
+      </div>
+      <button class="btn-ghost btn-sm" id="expHistBtn" style="display:none" onclick="openHistoryModal()">📋 History</button>
+      <button class="btn-ghost btn-sm" id="expExportBtn" style="display:none" onclick="exportParts()">⬇ Export</button>
+      <button class="icon-btn" onclick="syncAll()" title="Refresh">↻</button>
+    </div>
+    <!-- Content -->
+    <div class="exp-content" id="expContent">
+      <div class="exp-empty">
+        <div class="exp-empty-icon">🏭</div>
+        <div class="exp-empty-title">Prasad Seeds Equipment Database</div>
+        <div class="exp-empty-sub">Pilih Unit atau klik folder di sidebar untuk mulai</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Detail panel (slide in dari kanan saat part dipilih) ─── -->
+  <div id="expDetailPanel" style="width:0;flex-shrink:0;overflow:hidden;transition:width .25s ease;background:var(--bg2);border-left:1px solid var(--border)">
+    <div id="expDetailInner" style="width:380px;height:100%;overflow-y:auto;padding:16px">
+      <div id="detailEmpty" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:var(--text3);text-align:center;gap:10px;padding:20px">
+        <div style="font-size:40px">🔩</div>
+        <div style="font-size:13px;color:var(--text2)">Pilih part untuk detail</div>
+      </div>
+      <div id="detailContent" style="display:none"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══ MODAL: ADD / EDIT PART ═══ -->
+<div class="overlay" id="partModal" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-title" id="modalTitle">+ Tambah Part</div>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="fPartId"/>
+      <div class="form-grid">
+        <div class="fg">
+          <label class="flabel">Nama Part *</label>
+          <input class="finput" id="fNama" placeholder="Thermocouple"/>
+          <span class="ferr" id="e-fNama"></span>
+        </div>
+        <div class="fg">
+          <label class="flabel">Qty *</label>
+          <input class="finput" id="fQty" type="number" min="0" placeholder="2"/>
+          <span class="ferr" id="e-fQty"></span>
+        </div>
+        <div class="fg">
+          <label class="flabel">Part Number</label>
+          <input class="finput" id="fPartNo" placeholder="TC-K-PT100"/>
+        </div>
+        <div class="fg">
+          <label class="flabel">Satuan</label>
+          <select class="fsel2" id="fSatuan">
+            <option>pcs</option><option>set</option><option>m</option><option>kg</option>
+            <option>liter</option><option>roll</option><option>box</option>
+          </select>
+        </div>
+        <div class="fg full">
+          <label class="flabel">Spesifikasi Teknis</label>
+          <input class="finput" id="fSpec" placeholder="Type K, range -50~400°C, probe 6mm"/>
+          <div class="fhint">Pisahkan dengan koma jika lebih dari satu spesifikasi</div>
+        </div>
+        <div class="fg">
+          <label class="flabel">Vendor / Supplier</label>
+          <input class="finput" id="fVendor" placeholder="PT. Abadi Jaya"/>
+        </div>
+        <div class="fg">
+          <label class="flabel">Harga Satuan (Rp)</label>
+          <input class="finput" id="fHarga" type="number" min="0" placeholder="250000"/>
+        </div>
+        <div class="fg">
+          <label class="flabel">Stok Minimum</label>
+          <input class="finput" id="fStokMin" type="number" min="0" placeholder="2"/>
+        </div>
+        <div class="fg">
+          <label class="flabel">Kondisi</label>
+          <select class="fsel2" id="fKondisi">
+            <option>Good</option><option>Warning</option><option>Critical</option>
+          </select>
+        </div>
+        <div class="fg full">
+          <label class="flabel">Catatan</label>
+          <textarea class="ftextarea" id="fCatatan" placeholder="Lokasi pemasangan, instruksi penggantian, dll..."></textarea>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-ghost" onclick="closeModal()">Batal</button>
+        <button class="btn-primary" onclick="savePart()">SIMPAN</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MODAL: MACHINE HISTORY ═══ -->
+<div class="overlay" id="historyModal" onclick="if(event.target===this)document.getElementById('historyModal').classList.remove('open')">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-hdr">
+      <div class="modal-title" id="historyModalTitle">History Mesin</div>
+      <button class="modal-close" onclick="document.getElementById('historyModal').classList.remove('open')">×</button>
+    </div>
+    <div class="modal-body">
+      <div id="historyModalBody"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MODAL: CONFIG API ═══ -->
+<div class="overlay" id="cfgModal" onclick="if(event.target===this)document.getElementById('cfgModal').classList.remove('open')">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-hdr">
+      <div class="modal-title">⚙ Konfigurasi API</div>
+      <button class="modal-close" onclick="document.getElementById('cfgModal').classList.remove('open')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="fg" style="margin-bottom:14px">
+        <label class="flabel">URL Apps Script — Equipment DB</label>
+        <input class="finput" id="cfgApiUrl" placeholder="https://script.google.com/macros/s/..."/>
+        <div class="fhint" style="margin-top:4px">Deploy Google Apps Script dari spreadsheet Equipment DB</div>
+      </div>
+      <div class="fg" style="margin-bottom:14px">
+        <label class="flabel">URL Apps Script — Daily Report (untuk history)</label>
+        <input class="finput" id="cfgDrUrl" placeholder="https://script.google.com/macros/s/..."/>
+        <div class="fhint" style="margin-top:4px">Sama dengan API_URL di file Daily Report — untuk pull history mesin</div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-ghost" onclick="document.getElementById('cfgModal').classList.remove('open')">Tutup</button>
+        <button class="btn-primary" onclick="saveConfig()">SIMPAN & SYNC</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ OVERVIEW PAGE ═══ -->
+<div class="extra-page" id="pg-overview">
+  <div class="pg-header">
+    <div><div class="pg-title">Overview Equipment</div><div class="pg-sub" id="ovSub">—</div></div>
+    <button class="btn-ghost" onclick="renderOverview()">↻ Refresh</button>
+  </div>
+  <div class="ov-grid" id="ovStats"></div>
+  <div id="ovAlerts"></div>
+  <div style="font-size:10px;font-family:'IBM Plex Mono',monospace;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Distribusi per Area — klik baris untuk buka explorer</div>
+  <div id="ovAreaTable"></div>
+</div>
+
+<!-- ═══ ALL PARTS PAGE ═══ -->
+<div class="extra-page" id="pg-all-parts">
+  <div class="pg-header">
+    <div class="pg-title">Semua Parts</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn-ghost" onclick="exportAllParts()">⬇ Export CSV</button>
+      <button class="btn-primary" onclick="openPartForm()">+ Tambah Part</button>
+    </div>
+  </div>
+  <div class="ftable-toolbar">
+    <div class="tree-search-wrap" style="flex:1;max-width:260px">
+      <span style="color:var(--text3);font-size:12px">⌕</span>
+      <input id="allQ" placeholder="Cari nama, kode, equipment..." oninput="renderAllParts()"/>
+    </div>
+    <select class="finput" id="allUnit" onchange="renderAllParts()" style="width:auto;padding:6px 10px;font-size:12px">
+      <option value="">Semua Unit</option><option>Unit 1</option><option>Unit 2</option>
+    </select>
+    <select class="finput" id="allKond" onchange="renderAllParts()" style="width:auto;padding:6px 10px;font-size:12px">
+      <option value="">Semua Kondisi</option><option>Good</option><option>Warning</option><option>Critical</option>
+    </select>
+    <label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;color:var(--text2)">
+      <input type="checkbox" id="allLow" onchange="renderAllParts()"/> Stok rendah
+    </label>
+  </div>
+  <div id="allPartsWrap"></div>
+  <div class="pagination" id="allPagination"></div>
+</div>
+
+<!-- ═══ GAS SETUP PAGE ═══ -->
+<div class="extra-page" id="pg-gas-setup">
+  <div class="pg-title" style="margin-bottom:4px">Setup Google Apps Script</div>
+  <div style="font-size:12px;color:var(--text2);margin-bottom:18px">Panduan menghubungkan Equipment DB ke Google Sheets baru (terpisah dari Daily Report)</div>
+
+  <div class="gas-card">
+    <div class="gas-title">📋 Langkah 1 — Buat Spreadsheet Baru</div>
+    <div class="gas-sub">Buat spreadsheet baru bernama <strong>Prasad Equipment Database</strong>. Buat 2 sheet:</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:0">
+      <div><div style="font-size:11px;font-weight:600;margin-bottom:5px">Sheet 1: <code style="color:var(--accent)">PARTS</code></div>
+        <div class="code-block" style="max-height:80px">id | unit | area | equipment | nama | partNo | qty | satuan | spec | vendor | harga | stokMin | kondisi | catatan | kode | images | lastUpdate</div></div>
+      <div><div style="font-size:11px;font-weight:600;margin-bottom:5px">Sheet 2: <code style="color:var(--accent)">MACHINE_HISTORY</code></div>
+        <div class="code-block" style="max-height:80px">id | tanggal | unit | area | mesin | jenisLaporan | deskripsi | akarMasalah | tindakan | sparepart | pic | status | downtime | durasi | source | lastUpdate</div></div>
+    </div>
+  </div>
+
+  <div class="gas-card">
+    <div class="gas-title">⚙ Langkah 2 — Deploy Apps Script</div>
+    <div class="gas-sub">Buka <strong>Extensions → Apps Script</strong> di spreadsheet tersebut, hapus semua kode, paste kode berikut:</div>
+    <div class="code-block" id="gasCodeBlock">// Prasad Seeds — Equipment Database GAS
+const SS_ID = 'GANTI_DENGAN_ID_SPREADSHEET_KAMU';
+const SH_PARTS = 'PARTS', SH_HIST = 'MACHINE_HISTORY';
+
+function doGet(e)  { return handle(e); }
+function doPost(e) { return handle(e); }
+
+function handle(e) {
+  const p = e.parameter || {};
+  const b = (() => { try { return JSON.parse(e.postData?.contents||'{}'); } catch{ return {}; }})();
+  const action = p.action || b.action || '';
+  let result;
+  try {
+    if      (action==='getParts')      result = getParts();
+    else if (action==='upsertPart')    result = upsertPart(b);
+    else if (action==='deletePart')    result = deletePart(b);
+    else if (action==='getHistory')    result = getHistory(p);
+    else if (action==='upsertHistory') result = upsertHistory(b);
+    else if (action==='ping')          result = { ok:true, message:'EDB GAS OK' };
+    else result = { ok:false, message:'Unknown action: '+action };
+  } catch(err) { result = { ok:false, message:err.toString() }; }
+  return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
+}
+
+function getSheet(name) {
+  const ss = SpreadsheetApp.openById(SS_ID);
+  return ss.getSheetByName(name) || ss.insertSheet(name);
+}
+
+function sheetToObjects(sh) {
+  const data = sh.getDataRange().getValues();
+  if (data.length < 2) return [];
+  const headers = data[0];
+  return data.slice(1).map(row => {
+    const obj = {};
+    headers.forEach((h,i) => { if(h) obj[h] = String(row[i]??''); });
+    return obj;
+  }).filter(r => r.id);
+}
+
+function getParts() {
+  return { ok:true, data: sheetToObjects(getSheet(SH_PARTS)) };
+}
+
+function upsertPart(part) {
+  const sh = getSheet(SH_PARTS);
+  const cols = ['id','unit','area','equipment','nama','partNo','qty','satuan','spec','vendor','harga','stokMin','kondisi','catatan','kode','images','lastUpdate'];
+  if (sh.getLastRow() < 1) sh.appendRow(cols);
+  const all = sh.getDataRange().getValues();
+  const idCol = all[0].indexOf('id');
+  const idx = all.slice(1).findIndex(r => r[idCol]===part.id);
+  const row = cols.map(h => part[h]??'');
+  if (idx>=0) sh.getRange(idx+2, 1, 1, row.length).setValues([row]);
+  else sh.appendRow(row);
+  return { ok:true };
+}
+
+function deletePart(b) {
+  const sh = getSheet(SH_PARTS);
+  const all = sh.getDataRange().getValues();
+  const idCol = all[0].indexOf('id');
+  for (let i=1;i<all.length;i++) { if(String(all[i][idCol])===String(b.id)){ sh.deleteRow(i+1); break; } }
+  return { ok:true };
+}
+
+function getHistory(p) {
+  let data = sheetToObjects(getSheet(SH_HIST));
+  if (p.mesin) data = data.filter(r => r.mesin?.toLowerCase()===p.mesin.toLowerCase());
+  if (p.unit)  data = data.filter(r => r.unit===p.unit);
+  data.sort((a,b) => new Date(b.tanggal||0)-new Date(a.tanggal||0));
+  return { ok:true, data };
+}
+
+function upsertHistory(entry) {
+  const sh = getSheet(SH_HIST);
+  const cols = ['id','tanggal','unit','area','mesin','jenisLaporan','deskripsi','akarMasalah','tindakan','sparepart','pic','status','downtime','durasi','source','lastUpdate'];
+  if (sh.getLastRow() < 1) sh.appendRow(cols);
+  const all = sh.getDataRange().getValues();
+  const idCol = all[0].indexOf('id');
+  const idx = all.slice(1).findIndex(r => r[idCol]===entry.id);
+  const row = cols.map(h => entry[h]??'');
+  if (idx>=0) sh.getRange(idx+2, 1, 1, row.length).setValues([row]);
+  else sh.appendRow(row);
+  return { ok:true };
+}</div>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="btn-primary btn-sm" onclick="copyGAS()">📋 Copy Kode</button>
+      <button class="btn-ghost btn-sm" onclick="fillSSId()">✏ Isi Spreadsheet ID</button>
+    </div>
+  </div>
+
+  <div class="gas-card">
+    <div class="gas-title">🚀 Langkah 3 — Deploy & Konfigurasi</div>
+    <div style="display:flex;flex-direction:column;gap:7px">
+      <div class="step-item"><span class="step-num">1</span><span>Di Apps Script: <strong>Deploy → New deployment → Web app</strong></span></div>
+      <div class="step-item"><span class="step-num">2</span><span>Set <strong>Execute as: Me</strong> dan <strong>Who has access: Anyone</strong></span></div>
+      <div class="step-item"><span class="step-num">3</span><span>Copy URL <code style="color:var(--accent)">/exec</code> yang muncul setelah deploy</span></div>
+      <div class="step-item"><span class="step-num">4</span><span>Klik pill <strong>⚠ Konfigurasi</strong> di topbar → paste URL Equipment DB</span></div>
+      <div class="step-item"><span class="step-num">5</span><span>Opsional: masukkan URL Daily Report API untuk auto-pull history mesin</span></div>
+    </div>
+    <div style="margin-top:14px;border-top:1px solid var(--border);padding-top:14px">
+      <div class="gas-sub" style="margin-bottom:10px">Atau konfigurasi langsung di sini:</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:600px">
+        <div class="fg full" style="grid-column:1/-1"><label class="flabel">URL API Equipment DB</label>
+          <input class="finput" id="gasApiInput" placeholder="https://script.google.com/macros/s/..."/></div>
+        <div class="fg full" style="grid-column:1/-1"><label class="flabel">URL API Daily Report (untuk history)</label>
+          <input class="finput" id="gasDrInput" placeholder="https://script.google.com/macros/s/..."/></div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button class="btn-primary" onclick="saveCfgFromGas()">💾 Simpan & Test</button>
+      </div>
+      <div id="gasTestResult" style="margin-top:8px;font-size:12px;color:var(--text3)"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MODAL: ADD HISTORY ═══ -->
+<div class="overlay" id="addHistModal" onclick="if(event.target===this)document.getElementById('addHistModal').classList.remove('open')">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-title" id="addHistTitle">+ Tambah History Manual</div>
+      <button class="modal-close" onclick="document.getElementById('addHistModal').classList.remove('open')">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="hfId"/>
+      <div class="form-grid">
+        <div class="fg"><label class="flabel">Tanggal *</label><input class="finput" id="hfTanggal" type="date"/></div>
+        <div class="fg"><label class="flabel">Jenis Laporan</label>
+          <select class="fsel2" id="hfJenis"><option>Troubleshooting</option><option>Preventive Maintenance</option><option>Improvement</option><option>Monitoring</option><option>Project</option></select></div>
+        <div class="fg full"><label class="flabel">Deskripsi *</label><textarea class="ftextarea" id="hfDesk" rows="2" placeholder="Deskripsi pekerjaan..."></textarea><span class="ferr" id="e-hfDesk"></span></div>
+        <div class="fg full"><label class="flabel">Akar Masalah</label><input class="finput" id="hfAkar" placeholder="Penyebab..."/></div>
+        <div class="fg full"><label class="flabel">Tindakan</label><input class="finput" id="hfTindakan" placeholder="Yang dilakukan..."/></div>
+        <div class="fg"><label class="flabel">Sparepart</label><input class="finput" id="hfSpare" placeholder="Part yang digunakan"/></div>
+        <div class="fg"><label class="flabel">PIC</label><input class="finput" id="hfPic" placeholder="Teknisi"/></div>
+        <div class="fg"><label class="flabel">Status</label>
+          <select class="fsel2" id="hfStatus"><option>CLOSED</option><option>OPEN</option><option>HANDOVER</option></select></div>
+        <div class="fg"><label class="flabel">Downtime (menit)</label><input class="finput" id="hfDowntime" type="number" min="0" value="0"/></div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-ghost" onclick="document.getElementById('addHistModal').classList.remove('open')">Batal</button>
+        <button class="btn-primary" onclick="saveHistEntry()">SIMPAN</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MODAL: HISTORY MESIN ═══ -->
+<div class="overlay" id="histModal" onclick="if(event.target===this)document.getElementById('histModal').classList.remove('open')">
+  <div class="modal" style="max-width:780px">
+    <div class="modal-hdr">
+      <div class="modal-title" id="histModalTitle">History Mesin</div>
+      <button class="modal-close" onclick="document.getElementById('histModal').classList.remove('open')">×</button>
+    </div>
+    <div class="modal-body">
+      <div id="histModalBody"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MODAL: TAMBAH / EDIT PART ═══ -->
+<div class="overlay" id="partFormModal" onclick="if(event.target===this)closePartForm()">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-hdr">
+      <div>
+        <div class="modal-title" id="partFormTitle">+ Tambah Part</div>
+        <div id="partFormEquipLabel" style="font-size:11px;color:var(--text3);margin-top:3px"></div>
+      </div>
+      <button class="modal-close" onclick="closePartForm()">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="pfId"/>
+      <input type="hidden" id="pfEquipId"/>
+      <div class="form-grid">
+        <div class="fg full">
+          <label class="flabel">Nama Part *</label>
+          <input class="finput" id="pfName" placeholder="Contoh: Motor, Bearing, Thermocouple..."/>
+          <span class="ferr" id="e-pfName"></span>
+        </div>
+        <div class="fg">
+          <label class="flabel">Kategori</label>
+          <select class="fsel2" id="pfCategory">
+            <option value="">— Pilih —</option>
+            <option>Electrical</option>
+            <option>Mechanical</option>
+            <option>Civil</option>
+            <option>Instrument</option>
+            <option>Consumable</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label class="flabel">Brand / Merk</label>
+          <input class="finput" id="pfBrand" placeholder="Contoh: SKF, ABB, Siemens..."/>
+        </div>
+        <div class="fg full">
+          <label class="flabel">Spesifikasi Teknis</label>
+          <input class="finput" id="pfSpec" placeholder="Contoh: 2.2kW 3Phase, 1440RPM, Dia 45mm..."/>
+          <div class="fhint">Pisahkan dengan koma untuk beberapa spec</div>
+        </div>
+        <div class="fg">
+          <label class="flabel">Stok Saat Ini</label>
+          <input class="finput" id="pfStock" type="number" min="0" placeholder="0"/>
+        </div>
+        <div class="fg">
+          <label class="flabel">Stok Minimum</label>
+          <input class="finput" id="pfMinStock" type="number" min="0" placeholder="0"/>
+          <div class="fhint">Alert muncul jika stok di bawah ini</div>
+        </div>
+        <div class="fg">
+          <label class="flabel">Satuan (UoM)</label>
+          <select class="fsel2" id="pfUom">
+            <option value="">— Pilih —</option>
+            <option>pcs</option><option>set</option><option>m</option>
+            <option>kg</option><option>liter</option><option>roll</option>
+            <option>box</option><option>unit</option><option>pair</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label class="flabel">Kondisi</label>
+          <select class="fsel2" id="pfCondition">
+            <option value="">— Pilih —</option>
+            <option>Good</option>
+            <option>Warning</option>
+            <option>Critical</option>
+          </select>
+        </div>
+        <div class="fg full">
+          <label class="flabel">Lokasi Penyimpanan</label>
+          <input class="finput" id="pfLocation" placeholder="Contoh: Gudang A Rak 3, Panel MCC Unit 1..."/>
+        </div>
+        <div class="fg full">
+          <label class="flabel">Catatan</label>
+          <textarea class="ftextarea" id="pfNotes" rows="2" placeholder="Info tambahan, instruksi penggantian, interval PM..."></textarea>
+        </div>
+      </div>
+
+      <!-- Indikator status simpan -->
+      <div id="pfSaveStatus" style="display:none;margin-top:12px;padding:10px 14px;border-radius:7px;font-size:12px;display:none"></div>
+
+      <div class="form-actions">
+        <button class="btn-danger btn-sm" id="pfDeleteBtn" style="display:none;margin-right:auto" onclick="deletePartFromForm()">✕ Hapus Part</button>
+        <button class="btn-ghost" onclick="closePartForm()">Batal</button>
+        <button class="btn-primary" id="pfSaveBtn" onclick="savePart()">💾 SIMPAN KE SHEETS</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<input type="file" id="imgInput" multiple accept="image/*" style="display:none" onchange="handleImgUpload(this)"/>
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox" onclick="document.getElementById('lightbox').classList.remove('open')">
+  <button class="lb-close" onclick="document.getElementById('lightbox').classList.remove('open')">×</button>
+  <img id="lbImg" src="" alt="" style="max-width:90vw;max-height:90vh;border-radius:8px;object-fit:contain"/>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════
+// CONFIG & STATE
+// ═══════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════
+// CONFIG — API sudah dikonfigurasi langsung
+// ═══════════════════════════════════════════════════
+const API_URL = 'https://script.google.com/macros/s/AKfycbyatglW7oeF9MD1kcxrSx6foacvI2LNjtySH3JfDhHIeGa20eNHCdVO_FJ-Qdx_eoOZ/exec';
+const CACHE_KEY = 'prasad_edb_cache_v1';
+const HIST_CACHE_KEY = 'prasad_edb_hist_v1';
+
+// ─── Live data dari Sheets ───
+let DB = {
+  units:     [],   // [{id, name, desc}]
+  areas:     [],   // [{id, name, unitId, location}]
+  equipment: [],   // [{id, name, unitId, areaId, brand, model, serial, status, category, spec, notes}]
+  parts:     [],   // [{Id, name, equipId, category, brand, Specs, stock, minStock, uom, condition, location, notes}]
+};
+let DR_HISTORY = [];   // repair history dari EQ_REPAIR_HISTORY
+let SEL = { unitId:'', areaId:'', equipId:'', unitName:'', areaName:'', equipName:'' };
+let ACTIVE_PART_ID = null;
+let TREE_STATE = {};
+let _syncing = false;
+
+// ─── Lookup helpers ───
+const unitName  = id => DB.units.find(u=>u.id===id)?.name || id;
+const areaName  = id => DB.areas.find(a=>a.id===id)?.name || id;
+const equipName = id => DB.equipment.find(e=>e.id===id)?.name || id;
+const partsFor  = equipId => DB.parts.filter(p => p.equipId===equipId);
+
+// Part ID: GAS EQ_HEADERS pakai 'id' lowercase, sheet asli bisa 'Id' — handle keduanya
+const partId  = p => p.id || p.Id || '';
+// Specs field: GAS EQ_HEADERS pakai 'oem', sheet asli pakai 'Specs' — handle keduanya
+const partSpec = p => p.Specs || p.oem || p.spec || '';
+
+// ═══════════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════════
+const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const val = id => document.getElementById(id)?.value||'';
+const setVal = (id,v) => { const el=document.getElementById(id); if(el) el.value=v??''; };
+const setText = (id,v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
+const now = () => new Date().toLocaleString('id-ID');
+const fmtDate = s => { if(!s) return '—'; try{ return new Date(s).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}); }catch(e){ return s; } };
+const fmtRp = n => { if(!n||isNaN(n)) return '—'; return 'Rp '+Number(n).toLocaleString('id-ID'); };
+const kondisiClass = k => k==='Good'?'ok':k==='Warning'?'warn':'crit';
+
+function toast(msg, type='info') {
+  const t=document.getElementById('toast');
+  const el=document.createElement('div');
+  el.className='toast-msg '+type; el.textContent=msg;
+  t.appendChild(el); setTimeout(()=>el.remove(),3200);
+}
+
+// ═══════════════════════════════════════════════════
+// PERSISTENCE — cache ke localStorage supaya offline tetap jalan
+// ═══════════════════════════════════════════════════
+function saveCache() {
+  try{ localStorage.setItem(CACHE_KEY, JSON.stringify(DB)); }catch(e){}
+}
+function loadCache() {
+  try{ const s=localStorage.getItem(CACHE_KEY); if(s) DB=JSON.parse(s); }catch(e){}
+  try{ const s=localStorage.getItem(HIST_CACHE_KEY); if(s) DR_HISTORY=JSON.parse(s); }catch(e){}
+}
+
+// ═══════════════════════════════════════════════════
+// SYNC — pakai action=getParts sesuai GAS handler
+// Response: { ok, data: [...] } atau { ok, data: { parts, units, areas, equipment, ... } }
+// ═══════════════════════════════════════════════════
+async function syncAll() {
+  if (_syncing) return;
+  _syncing = true;
+  const pill = document.getElementById('apiPill');
+  pill.className='api-pill warn'; pill.textContent='⧙ Memuat...';
+
+  try {
+    // GAS MaintWare v3.3.x — fn=read memanggil eqReadAll()
+    // Response: { success:true, ok:true, data:{ units, areas, equipment, parts, repairHistory, workorders, technicians } }
+    const res = await fetch(API_URL+'?fn=read', { signal: AbortSignal.timeout(30000) });
+    const rawText = await res.text();
+    console.log('[SYNC] Raw response:', rawText.slice(0,800));
+
+    let json;
+    try { json = JSON.parse(rawText); }
+    catch(e) { throw new Error('GAS tidak mengembalikan JSON valid. Cek Console F12.'); }
+
+    const ok = json.ok || json.success;
+    // eqReadAll() return { ok, data: result } → jsonOk() wrap jadi { success, ok, data: result }
+    const d = json.data;
+
+    if (ok && d) {
+      if (d.units)         DB.units     = d.units;
+      if (d.areas)         DB.areas     = d.areas;
+      if (d.equipment)     DB.equipment = d.equipment;
+      if (d.parts)         DB.parts     = d.parts;
+      // GAS pakai key 'repairHistory' (dari eqReadAll) atau 'history' (dari readEDB)
+      DR_HISTORY = d.repairHistory || d.history || [];
+      try{ localStorage.setItem(HIST_CACHE_KEY, JSON.stringify(DR_HISTORY)); }catch(e){}
+      saveCache();
+      pill.className='api-pill ok';
+      pill.textContent='✓ '+DB.equipment.length+' equip · '+DB.parts.length+' parts';
+      toast('Data berhasil dimuat dari Sheets','success');
+    } else if (ok && !d) {
+      // Kemungkinan GAS return { success, message } tanpa data (ping response)
+      throw new Error('GAS tidak mengembalikan data. Pastikan fn=read terdeploy. Response: '+JSON.stringify(json).slice(0,200));
+    } else {
+      throw new Error(json.message || 'GAS error');
+    }
+  } catch(e) {
+    pill.className='api-pill err'; pill.textContent='✗ Gagal';
+    const isTimeout = e.name==='AbortError'||e.name==='TimeoutError';
+    toast('Gagal: '+(isTimeout?'Timeout (30s)':e.message),'error');
+  }
+
+  _syncing = false;
+  refreshAll();
+}
+
+function refreshAll() {
+  renderTree();
+  renderBreadcrumb();
+  renderExplorer();
+  if (ACTIVE_PART_ID) renderDetail(ACTIVE_PART_ID);
+}
+
+// ═══════════════════════════════════════════════════
+// EXPLORER STATE — Windows 11 folder navigation
+// ═══════════════════════════════════════════════════
+let NAV = { level:'root', unitId:'', areaId:'', equipId:'', unitName:'', areaName:'', equipName:'' };
+
+function navTo(level, id, name) {
+  if      (level==='root')      NAV = { level:'root', unitId:'', areaId:'', equipId:'', unitName:'', areaName:'', equipName:'' };
+  else if (level==='unit')      NAV = { ...NAV, level:'unit', unitId:id, unitName:name, areaId:'', equipId:'' };
+  else if (level==='area')      NAV = { ...NAV, level:'area', areaId:id, areaName:name, equipId:'' };
+  else if (level==='equipment') NAV = { ...NAV, level:'equipment', equipId:id, equipName:name };
+  SEL = { unitId:NAV.unitId, areaId:NAV.areaId, equipId:NAV.equipId, unitName:NAV.unitName, areaName:NAV.areaName, equipName:NAV.equipName };
+  ACTIVE_PART_ID = null;
+  closeDetailPanel();
+  renderBreadcrumb();
+  renderExplorer();
+  renderTree();
+}
+
+function renderBreadcrumb() {
+  const el = document.getElementById('expBreadcrumb'); if(!el) return;
+  let html = `<button class="exp-bc-btn exp-bc-home" onclick="navTo('root')" title="Home">🏠</button>`;
+  if (NAV.unitId)  html += `<span class="exp-bc-sep">›</span><button class="exp-bc-btn ${NAV.level==='unit'?'active':''}" onclick="navTo('unit','${esc(NAV.unitId)}','${esc(NAV.unitName)}')">${esc(NAV.unitName)}</button>`;
+  if (NAV.areaId)  html += `<span class="exp-bc-sep">›</span><button class="exp-bc-btn ${NAV.level==='area'?'active':''}" onclick="navTo('area','${esc(NAV.areaId)}','${esc(NAV.areaName)}')">${esc(NAV.areaName)}</button>`;
+  if (NAV.equipId) html += `<span class="exp-bc-sep">›</span><button class="exp-bc-btn active">${esc(NAV.equipName)}</button>`;
+  el.innerHTML = html;
+  const histBtn   = document.getElementById('expHistBtn');
+  const exportBtn = document.getElementById('expExportBtn');
+  if (histBtn)   histBtn.style.display   = NAV.equipId ? 'inline-flex' : 'none';
+  if (exportBtn) exportBtn.style.display = NAV.equipId ? 'inline-flex' : 'none';
+}
+
+function renderExplorer() {
+  const el = document.getElementById('expContent'); if(!el) return;
+  if (NAV.level==='root' || !NAV.unitId) {
+    if (!DB.units.length) { el.innerHTML=loadingHtml(); return; }
+    let html = `<div class="exp-section-title"><span>Units (${DB.units.length})</span></div><div class="exp-grid">`;
+    DB.units.forEach(u => {
+      const areaCnt = DB.areas.filter(a=>a.unitId===u.id).length;
+      const partCnt = DB.parts.filter(p=>{ const eq=DB.equipment.find(e=>e.id===p.equipId); return eq&&eq.unitId===u.id; }).length;
+      html += `<div class="exp-folder" onclick="navTo('unit','${esc(u.id)}','${esc(u.name)}')"><div class="exp-folder-icon">🏭</div><div class="exp-folder-name">${esc(u.name)}</div><div class="exp-folder-meta">${areaCnt} area</div>${partCnt>0?`<span class="exp-folder-badge">${partCnt}</span>`:''}</div>`;
+    });
+    el.innerHTML = html + '</div>'; return;
+  }
+  if (NAV.level==='unit') {
+    const areas = DB.areas.filter(a=>a.unitId===NAV.unitId);
+    let html = `<div class="exp-section-title"><span>Area di ${esc(NAV.unitName)} (${areas.length})</span></div><div class="exp-grid">`;
+    areas.forEach(a => {
+      const eqCnt   = DB.equipment.filter(e=>e.areaId===a.id).length;
+      const partCnt = DB.parts.filter(p=>{ const eq=DB.equipment.find(e=>e.id===p.equipId); return eq&&eq.areaId===a.id; }).length;
+      html += `<div class="exp-folder" onclick="navTo('area','${esc(a.id)}','${esc(a.name)}')"><div class="exp-folder-icon">📂</div><div class="exp-folder-name">${esc(a.name)}</div><div class="exp-folder-meta">${eqCnt} equipment</div>${partCnt>0?`<span class="exp-folder-badge">${partCnt}</span>`:''}</div>`;
+    });
+    el.innerHTML = html + '</div>'; return;
+  }
+  if (NAV.level==='area') {
+    const equips = DB.equipment.filter(e=>e.areaId===NAV.areaId);
+    let html = `<div class="exp-section-title"><span>Equipment di ${esc(NAV.areaName)} (${equips.length})</span></div><div class="exp-grid">`;
+    equips.forEach(eq => {
+      const pCnt = partsFor(eq.id).length;
+      const icon = eq.category==='Electrical'?'⚡':eq.category==='Mechanical'?'⚙️':'🔧';
+      html += `<div class="exp-folder ${NAV.equipId===eq.id?'selected':''}" onclick="navTo('equipment','${esc(eq.id)}','${esc(eq.name)}')"><div class="exp-folder-icon">${icon}</div><div class="exp-folder-name">${esc(eq.name)}</div><div class="exp-folder-meta">${pCnt>0?pCnt+' parts':'—'}</div>${pCnt>0?`<span class="exp-folder-badge">${pCnt}</span>`:''}</div>`;
+    });
+    el.innerHTML = html + '</div>'; return;
+  }
+  if (NAV.level==='equipment') {
+    const eq    = DB.equipment.find(e=>e.id===NAV.equipId);
+    const parts = partsFor(NAV.equipId);
+    const meta  = eq ? [eq.brand,eq.model,eq.category].filter(Boolean).join(' · ') : '';
+    let html = `<div class="exp-section-title"><span>📦 ${esc(NAV.equipName)}${meta?' <span style=\"color:var(--text3);font-weight:400\">· '+esc(meta)+'</span>':''}</span><div style="display:flex;gap:8px;align-items:center"><span style="color:var(--text3)">${parts.length} parts</span><button class="btn-primary btn-sm" onclick="openPartForm()">+ Tambah Part</button></div></div>`;
+    if (!parts.length) {
+      html += `<div class="exp-empty" style="height:auto;padding:40px 20px"><div class="exp-empty-icon">🔩</div><div class="exp-empty-title">Belum ada parts</div><div class="exp-empty-sub" style="margin-bottom:16px">Tambahkan dari sini atau langsung di Google Sheets → EQ_PARTS</div><button class="btn-primary" onclick="openPartForm()">+ Tambah Part Pertama</button></div>`;
+    } else {
+      html += `<div class="exp-parts-grid">`;
+      parts.forEach(p => {
+        const pid = partId(p);
+        const low = p.minStock && parseFloat(p.stock||0) < parseFloat(p.minStock);
+        const icon = p.category==='Electrical'?'⚡':p.category==='Mechanical'?'⚙️':p.category==='Civil'?'🏗️':'🔩';
+        html += `<div class="exp-part-card ${ACTIVE_PART_ID===pid?'selected':''}" onclick="selectPart('${esc(pid)}')" ondblclick="openPartForm('${esc(pid)}')" title="Klik: detail | Double-klik: edit">
+          <button class="part-edit-btn" onclick="event.stopPropagation();openPartForm('${esc(pid)}')" title="Edit part">✏</button>
+          <div class="exp-part-icon">${icon}</div>
+          <div class="exp-part-name">${esc(p.name)}</div>
+          <div class="exp-part-id">${esc(pid)}</div>
+          <div class="exp-part-chips">${p.condition?`<span class="chip ${kondisiClass(p.condition)}">${esc(p.condition)}</span>`:''} ${p.stock!==''&&p.stock!==undefined?`<span class="chip ${low?'crit':''}">Stok: ${p.stock} ${p.uom||''}</span>`:''} ${low?'<span class="chip crit">⚠ Rendah</span>':''}</div>
+        </div>`;
+      });
+      html += `</div>`;
+    }
+    el.innerHTML = html;
+  }
+}
+
+function loadingHtml(){ return '<div style="padding:40px;text-align:center;color:var(--text3)">⟳ Memuat data dari Sheets...</div>'; }
+
+function selectPart(pid) {
+  ACTIVE_PART_ID = pid;
+  renderExplorer();
+  openDetailPanel();
+  renderDetail(pid);
+}
+
+function openDetailPanel() {
+  const panel = document.getElementById('expDetailPanel');
+  if (panel) panel.style.width = '380px';
+}
+function closeDetailPanel() {
+  const panel = document.getElementById('expDetailPanel');
+  if (panel) panel.style.width = '0';
+  const de = document.getElementById('detailEmpty');
+  const dc = document.getElementById('detailContent');
+  if (de) de.style.display = 'flex';
+  if (dc) dc.style.display = 'none';
+}
+
+function renderTree() {
+  const q    = (document.getElementById('treeQ')?.value||'').toLowerCase();
+  const body = document.getElementById('treeBody');
+  if (!body) return;
+  if (!DB.units.length) { body.innerHTML = loadingHtml(); return; }
+  const row = (indent, icon, label, badge, open, leaf, onclick, active) =>
+    `<div class="tn"><div class="tn-row ${active?'active':''}" style="padding-left:${indent}px" onclick="${onclick}"><span class="tn-toggle ${leaf?'leaf':open?'open':''}" style="font-size:9px">▶</span><span class="tn-icon">${icon}</span><span class="tn-label" title="${esc(label)}">${esc(label)}</span>${badge>0?`<span class="tn-badge">${badge}</span>`:''}</div></div>`;
+  let html = '';
+  DB.units.forEach(unit => {
+    const uExp = TREE_STATE[unit.id] !== false;
+    const uParts = DB.parts.filter(p=>{ const e=DB.equipment.find(x=>x.id===p.equipId); return e&&e.unitId===unit.id; }).length;
+    const areas = DB.areas.filter(a=>a.unitId===unit.id);
+    const uMatch = !q || unit.name.toLowerCase().includes(q) || areas.some(a=>a.name.toLowerCase().includes(q)||DB.equipment.filter(e=>e.areaId===a.id).some(e=>e.name.toLowerCase().includes(q)));
+    if (!uMatch) return;
+    html += row(8,'🏭',unit.name,uParts,uExp,false,`navTo('unit','${unit.id.replace(/'/g,"\\'")}','${unit.name.replace(/'/g,"\\'")}')`,NAV.unitId===unit.id&&!NAV.areaId);
+    if (uExp||q) {
+      areas.forEach(area => {
+        const aExp = TREE_STATE[unit.id+'/'+area.id] !== false;
+        const equips = DB.equipment.filter(e=>e.unitId===unit.id&&e.areaId===area.id);
+        const aParts = DB.parts.filter(p=>equips.some(e=>e.id===p.equipId)).length;
+        const aMatch = !q || area.name.toLowerCase().includes(q) || equips.some(e=>e.name.toLowerCase().includes(q));
+        if (!aMatch) return;
+        html += row(24,'📂',area.name,aParts,aExp,false,`navAreaFromSidebar('${unit.id.replace(/'/g,"\\'")}','${unit.name.replace(/'/g,"\\'")}','${area.id.replace(/'/g,"\\'")}','${area.name.replace(/'/g,"\\'")}')`,NAV.areaId===area.id&&!NAV.equipId);
+        if (aExp||q) {
+          equips.forEach(eq => {
+            if (q && !eq.name.toLowerCase().includes(q) && !area.name.toLowerCase().includes(q) && !unit.name.toLowerCase().includes(q)) return;
+            const pCnt = partsFor(eq.id).length;
+            const icon = eq.category==='Electrical'?'⚡':eq.category==='Mechanical'?'⚙️':'🔧';
+            html += row(40,icon,eq.name,pCnt,false,true,`navEquipFromSidebar('${unit.id.replace(/'/g,"\\'")}','${unit.name.replace(/'/g,"\\'")}','${area.id.replace(/'/g,"\\'")}','${area.name.replace(/'/g,"\\'")}','${eq.id.replace(/'/g,"\\'")}','${eq.name.replace(/'/g,"\\'")}')`,NAV.equipId===eq.id);
+          });
+        }
+      });
+    }
+  });
+  body.innerHTML = html || '<div style="padding:16px;text-align:center;color:var(--text3);font-size:12px">Tidak ada hasil</div>';
+}
+
+function navAreaFromSidebar(uid, uname, aid, aname) {
+  TREE_STATE[uid+'/'+aid] = TREE_STATE[uid+'/'+aid]===false;
+  NAV = { ...NAV, level:'area', unitId:uid, unitName:uname, areaId:aid, areaName:aname, equipId:'' };
+  SEL = { unitId:uid, areaId:aid, equipId:'', unitName:uname, areaName:aname, equipName:'' };
+  ACTIVE_PART_ID = null; closeDetailPanel(); renderBreadcrumb(); renderExplorer(); renderTree();
+}
+function navEquipFromSidebar(uid, uname, aid, aname, eid, ename) {
+  NAV = { level:'equipment', unitId:uid, unitName:uname, areaId:aid, areaName:aname, equipId:eid, equipName:ename };
+  SEL = { unitId:uid, areaId:aid, equipId:eid, unitName:uname, areaName:aname, equipName:ename };
+  ACTIVE_PART_ID = null; closeDetailPanel(); renderBreadcrumb(); renderExplorer(); renderTree();
+}
+function toggleUnit(id) {
+  TREE_STATE[id] = TREE_STATE[id]===false;
+  navTo('unit', id, DB.units.find(u=>u.id===id)?.name||id);
+}
+function toggleArea(uid,aid) {
+  const area = DB.areas.find(a=>a.id===aid);
+  const unit = DB.units.find(u=>u.id===uid);
+  navAreaFromSidebar(uid, unit?.name||uid, aid, area?.name||aid);
+}
+function selectEq(unitId,areaId,equipId,unitNm,areaNm,equipNm) {
+  navEquipFromSidebar(unitId,unitNm,areaId,areaNm,equipId,equipNm);
+}
+
+// renderPartsList — now a no-op, renderExplorer handles it
+function renderPartsList() {}
+
+
+
+// ═══════════════════════════════════════════════════
+// DETAIL PANEL
+// ═══════════════════════════════════════════════════
+function renderDetail(pid) {
+  ACTIVE_PART_ID = pid;
+  // Update part selection highlight in grid
+  document.querySelectorAll('.exp-part-card').forEach(el => {
+    el.classList.toggle('selected', el.getAttribute('onclick')?.includes(pid));
+  });
+
+  const part = DB.parts.find(p => partId(p)===pid);
+  if (!part) return;
+
+  document.getElementById('detailEmpty').style.display='none';
+  const dc = document.getElementById('detailContent'); dc.style.display='block';
+
+  const eq       = DB.equipment.find(e=>e.id===SEL.equipId||e.id===part.equipId);
+  const unitNm   = eq ? unitName(eq.unitId) : SEL.unitName;
+  const areaNm   = eq ? areaName(eq.areaId) : SEL.areaName;
+  const equipNm  = eq?.name || SEL.equipName;
+
+  // History dari EQ_REPAIR_HISTORY untuk equipment ini
+  const history = DR_HISTORY.filter(h =>
+    h.equipId===part.equipId || h.equipId===SEL.equipId
+  ).sort((a,b)=>new Date(b.createdAt||0)-new Date(a.createdAt||0)).slice(0,10);
+
+  const specs = partSpec(part).split(',').map(s=>s.trim()).filter(Boolean);
+  const imgs  = (part.images||'').split('||').filter(Boolean);
+  const low   = part.minStock && parseFloat(part.stock||0) < parseFloat(part.minStock);
+  const cond  = part.condition||'Good';
+  const barColor = cond==='Good'?'#4a9e3f':cond==='Warning'?'#fb8c3a':'#c0392b';
+  const condPct  = cond==='Good'?100:cond==='Warning'?55:25;
+
+  const totalDT  = history.reduce((s,h)=>s+(parseFloat(h.actualHours||0)*60),0);
+  const tsCount  = history.filter(h=>h.woType==='Troubleshooting').length;
+  const statusBadge = s => s==='Done'?'badge-closed':s==='Open'?'badge-open':'badge-handover';
+
+  dc.innerHTML = `
+  <!-- Header -->
+  <div class="detail-hdr">
+    <div class="dh-top">
+      <div class="dh-info">
+        <div class="dh-name">${esc(part.name)}</div>
+        <div class="dh-partno">${esc(pid)}</div>
+        ${part.brand?`<div class="dh-code">${esc(part.brand)}${partSpec(part)?' · '+partSpec(part).slice(0,50):''}</div>`:''}
+      </div>
+      <div class="detail-qty-badge" style="${low?'background:rgba(192,57,43,.2);border-color:rgba(192,57,43,.5)':''}">
+        <div class="detail-qty-num" style="${low?'color:#ff8080':''}">${part.stock!==undefined&&part.stock!==''&&part.stock!==null?part.stock:'—'}</div>
+        <div class="detail-qty-lbl">${esc(part.uom||'pcs')}</div>
+      </div>
+    </div>
+    <div class="detail-breadcrumb">
+      <span class="bc-item">${esc(unitNm)}</span><span class="bc-sep">›</span>
+      <span class="bc-item">${esc(areaNm)}</span><span class="bc-sep">›</span>
+      <span class="bc-item">${esc(equipNm)}</span><span class="bc-sep">›</span>
+      <span class="bc-item" style="background:rgba(74,158,63,.2);color:#7ddf6e">${esc(part.name)}</span>
+    </div>
+    ${low?`<div style="margin-top:10px;background:rgba(192,57,43,.2);border:1px solid rgba(192,57,43,.4);border-radius:6px;padding:7px 12px;font-size:11px;color:#ff8080">⚠ Stok (${part.stock}) di bawah minimum (${part.minStock})</div>`:''}
+    <div style="display:flex;gap:6px;margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,.1)">
+      <button class="btn-white btn-sm" onclick="openPartForm('${pid}')">✏ Edit Part</button>
+      <button class="btn-white btn-sm" onclick="openHistoryModal()">📋 History Mesin</button>
+    </div>
+  </div>
+
+  <!-- Mini stats -->
+  <div class="mini-stats">
+    <div class="mini-stat"><div class="ms-val">${history.length}</div><div class="ms-lbl">Riwayat WO</div></div>
+    <div class="mini-stat"><div class="ms-val">${tsCount}</div><div class="ms-lbl">Troubleshooting</div></div>
+    <div class="mini-stat"><div class="ms-val">${Math.round(totalDT)}</div><div class="ms-lbl">Total Jam Kerja</div></div>
+    <div class="mini-stat"><div class="ms-val" style="font-size:13px">${fmtDate(history[0]?.createdAt||history[0]?.completedAt||'')}</div><div class="ms-lbl">Terakhir</div></div>
+  </div>
+
+  <!-- Info grid -->
+  <div class="detail-grid">
+    <div class="detail-card">
+      <div class="detail-card-title">Informasi Part</div>
+      <div class="detail-row">
+        <span class="dr-label">Kondisi</span>
+        <div style="display:flex;align-items:center;gap:8px;flex:1;justify-content:flex-end">
+          <div class="cond-bar-wrap"><div class="cond-bar-fill" style="width:${condPct}%;background:${barColor}"></div></div>
+          <span style="color:${barColor};font-weight:600;font-size:12px;white-space:nowrap">${cond}</span>
+        </div>
+      </div>
+      <div class="detail-row"><span class="dr-label">Stok</span><span class="dr-val" style="color:${low?'var(--red)':'var(--text)'}">${part.stock!==undefined&&part.stock!==''?part.stock:'—'} ${part.uom||''}</span></div>
+      <div class="detail-row"><span class="dr-label">Stok Min</span><span class="dr-val" style="color:${low?'var(--red)':'var(--text)'}">${part.minStock||'—'}</span></div>
+      <div class="detail-row"><span class="dr-label">Kategori</span><span class="dr-val">${esc(part.category||'—')}</span></div>
+      <div class="detail-row"><span class="dr-label">Lokasi</span><span class="dr-val">${esc(part.location||'—')}</span></div>
+    </div>
+    <div class="detail-card">
+      <div class="detail-card-title">Equipment Info</div>
+      ${eq?`
+      <div class="detail-row"><span class="dr-label">Brand</span><span class="dr-val">${esc(eq.brand||'—')}</span></div>
+      <div class="detail-row"><span class="dr-label">Model</span><span class="dr-val">${esc(eq.model||'—')}</span></div>
+      <div class="detail-row"><span class="dr-label">Serial</span><span class="dr-val" style="font-family:'IBM Plex Mono',monospace;font-size:11px">${esc(eq.serial||'—')}</span></div>
+      <div class="detail-row"><span class="dr-label">Status</span><span class="dr-val">${esc(eq.status||'—')}</span></div>
+      <div class="detail-row"><span class="dr-label">Kategori Eq.</span><span class="dr-val">${esc(eq.category||'—')}</span></div>`
+      :`<div class="detail-row"><span class="dr-lbl">Equipment ID</span><span class="dr-val" style="font-family:'IBM Plex Mono',monospace;font-size:11px">${esc(part.equipId||'—')}</span></div>`}
+    </div>
+  </div>
+
+  <!-- Specs -->
+  ${specs.length?`<div class="detail-card" style="margin-bottom:12px">
+    <div class="detail-card-title">Spesifikasi Teknis</div>
+    <div class="spec-grid">
+      ${specs.map((s,i)=>`<div class="spec-box"><div class="spec-key">Spec ${i+1}</div><div class="spec-val">${esc(s)}</div></div>`).join('')}
+    </div>
+  </div>`:''}
+
+  <!-- Notes -->
+  ${part.notes?`<div class="detail-card" style="margin-bottom:12px">
+    <div class="detail-card-title">Catatan</div>
+    <div style="font-size:13px;color:var(--text2);line-height:1.6;white-space:pre-wrap">${esc(part.notes)}</div>
+  </div>`:''}
+
+  <!-- Foto -->
+  ${imgs.length?`<div class="detail-card" style="margin-bottom:12px">
+    <div class="detail-card-title">Foto Part — klik untuk perbesar</div>
+    <div class="img-grid">
+      ${imgs.map(src=>`<div class="img-thumb" onclick="openLightbox('${src}')">
+        <img src="${src}" alt="" loading="lazy"/></div>`).join('')}
+    </div>
+  </div>`:''}
+
+  <!-- History WO dari EQ_REPAIR_HISTORY -->
+  <div class="detail-card">
+    <div class="detail-card-title">
+      <span>History WO: ${esc(equipNm)}</span>
+      <button class="btn-ghost btn-sm" onclick="openHistoryModal()">Semua →</button>
+    </div>
+    ${history.length?`<div class="htable-wrap" style="border:none">
+      <table class="htable" style="min-width:480px">
+        <thead><tr>
+          <th>Tanggal</th><th>Tipe</th><th>Judul WO</th>
+          <th>Teknisi</th><th>Status</th><th style="text-align:right">Jam</th>
+        </tr></thead>
+        <tbody>${history.map(h=>`<tr onclick="expandHistRowDetail(this,'${esc(h.woTitle||'')}','${esc(h.notes||'')}','${esc(h.partsUsed||'')}','')">
+          <td style="white-space:nowrap">${fmtDate(h.createdAt)}</td>
+          <td><span class="chip" style="font-size:9px">${(h.woType||'—').slice(0,4).toUpperCase()}</span></td>
+          <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"
+            title="${esc(h.woTitle||'')}">${esc((h.woTitle||'—').slice(0,70))}</td>
+          <td style="white-space:nowrap">${esc(h.techName||'—')}</td>
+          <td><span class="badge ${statusBadge(h.status)}">${h.status||'—'}</span></td>
+          <td style="text-align:right;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text2)">${h.actualHours||'—'}</td>
+        </tr>`).join('')}</tbody>
+      </table>
+    </div>`:`<div style="padding:12px;text-align:center;color:var(--text3);font-size:12px">
+      Belum ada history WO untuk equipment ini</div>`}
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════════
+// HISTORY MODAL — dari EQ_REPAIR_HISTORY
+// ═══════════════════════════════════════════════════
+function openHistoryModal() {
+  if (!SEL.equipId) { toast('Pilih equipment terlebih dahulu','error'); return; }
+  document.getElementById('histModalTitle').textContent = 'History WO: '+SEL.equipName;
+  document.getElementById('histQ').value='';
+  renderHistModal();
+  document.getElementById('histModal').classList.add('open');
+}
+
+function renderHistModal() {
+  const q   = (document.getElementById('histQ')?.value||'').toLowerCase();
+  let hist  = DR_HISTORY.filter(h => h.equipId===SEL.equipId);
+  if (q) hist = hist.filter(h=>JSON.stringify(h).toLowerCase().includes(q));
+  hist.sort((a,b)=>new Date(b.createdAt||0)-new Date(a.createdAt||0));
+
+  const statusBadge = s => s==='Done'?'badge-closed':s==='Open'?'badge-open':'badge-handover';
+  const body = document.getElementById('histModalBody');
+  if(!hist.length){
+    body.innerHTML='<div style="padding:24px;text-align:center;color:var(--text3)">Belum ada history WO untuk equipment ini</div>';
+    return;
+  }
+  body.innerHTML=`<div class="htable-wrap"><table class="htable">
+    <thead><tr>
+      <th>Tanggal</th><th>Tipe WO</th><th>Judul</th>
+      <th>Teknisi</th><th>Status</th><th style="text-align:right">Aktual (jam)</th>
+    </tr></thead>
+    <tbody>${hist.map(h=>`
+      <tr onclick="expandHistRow(this,'${esc(h.woTitle||'')}','${esc(h.notes||'')}','${esc(h.partsUsed||'')}','${esc(h.priority||'')}')">
+        <td style="white-space:nowrap">${fmtDate(h.createdAt)}</td>
+        <td><span class="chip" style="font-size:9px">${(h.woType||'—').slice(0,6).toUpperCase()}</span></td>
+        <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"
+          title="${esc(h.woTitle||'')}">${esc((h.woTitle||'—').slice(0,80))}</td>
+        <td style="white-space:nowrap">${esc(h.techName||'—')}</td>
+        <td><span class="badge ${statusBadge(h.status)}">${h.status||'—'}</span></td>
+        <td style="text-align:right;font-family:'IBM Plex Mono',monospace;font-size:11px">${h.actualHours||'—'}</td>
+      </tr>`).join('')}
+    </tbody>
+  </table></div>`;
+}
+
+function expandHistRow(row, title, notes, parts, priority) {
+  const nxt=row.nextElementSibling;
+  if(nxt&&nxt.classList.contains('hist-expand')){ nxt.remove(); return; }
+  const tr=document.createElement('tr');
+  tr.className='hist-expand';
+  tr.innerHTML=`<td colspan="6" style="padding:10px 12px;background:var(--bg3);font-size:12px;cursor:default">
+    ${title?`<div style="margin-bottom:4px"><b style="color:var(--text3);font-size:10px">JUDUL:</b> ${esc(title)}</div>`:''}
+    ${notes?`<div style="margin-bottom:4px"><b style="color:var(--green2);font-size:10px">CATATAN:</b> ${esc(notes)}</div>`:''}
+    ${parts?`<div style="margin-bottom:4px"><b style="color:var(--blue);font-size:10px">PARTS DIPAKAI:</b> ${esc(parts)}</div>`:''}
+    ${priority?`<div><b style="color:var(--text3);font-size:10px">PRIORITAS:</b> ${esc(priority)}</div>`:''}
+  </td>`;
+  row.after(tr);
+}
+
+// ═══════════════════════════════════════════════════
+// OVERVIEW
+// ═══════════════════════════════════════════════════
+function renderOverview() {
+  const parts    = DB.parts;
+  const lowStock = parts.filter(p=>p.minStock&&parseFloat(p.stock||0)<parseFloat(p.minStock));
+  const critical = parts.filter(p=>p.condition==='Critical');
+
+  document.getElementById('ovSub').textContent =
+    DB.equipment.length+' equipment · '+parts.length+' parts · '+DB.areas.length+' area';
+
+  document.getElementById('ovStats').innerHTML = `
+    <div class="ov-stat c-g" onclick="switchPage('all-parts')">
+      <div class="ov-lbl">Total Parts</div><div class="ov-val">${parts.length}</div>
+      <div class="ov-sub">${DB.equipment.filter(e=>partsFor(e.id).length>0).length} equipment terdaftar</div>
+    </div>
+    <div class="ov-stat c-r" onclick="filterLowStock()">
+      <div class="ov-lbl">Stok Rendah</div>
+      <div class="ov-val" style="color:${lowStock.length>0?'var(--red)':'var(--navy)'}">${lowStock.length}</div>
+      <div class="ov-sub">di bawah stok minimum</div>
+    </div>
+    <div class="ov-stat c-o" onclick="filterCritical()">
+      <div class="ov-lbl">Kondisi Critical</div>
+      <div class="ov-val" style="color:${critical.length>0?'var(--orange)':'var(--navy)'}">${critical.length}</div>
+      <div class="ov-sub">perlu perhatian segera</div>
+    </div>
+    <div class="ov-stat c-b">
+      <div class="ov-lbl">Total Equipment</div>
+      <div class="ov-val">${DB.equipment.length}</div>
+      <div class="ov-sub">${DB.areas.length} area · ${DB.units.length} unit</div>
+    </div>`;
+
+  const alEl = document.getElementById('ovAlerts');
+  if(lowStock.length>0){
+    alEl.innerHTML=`<div class="stok-alert">⚠ ${lowStock.length} part stok rendah:
+      ${lowStock.slice(0,5).map(p=>`<span class="chip crit" style="cursor:pointer" onclick="goToPart('${esc(partId(p))}')">${esc(p.name)} (${p.stock}/${p.minStock})</span>`).join(' ')}
+      ${lowStock.length>5?`<span class="chip">+${lowStock.length-5}</span>`:''}
+    </div>`;
+  } else alEl.innerHTML='';
+
+  // Per-area breakdown
+  const areas={};
+  parts.forEach(p=>{
+    const eq=DB.equipment.find(e=>e.id===p.equipId);
+    if(!eq) return;
+    const k=eq.unitId+'/'+eq.areaId;
+    if(!areas[k]) areas[k]={unitId:eq.unitId,areaId:eq.areaId,total:0,low:0,crit:0};
+    areas[k].total++;
+    if(p.minStock&&parseFloat(p.stock||0)<parseFloat(p.minStock)) areas[k].low++;
+    if(p.condition==='Critical') areas[k].crit++;
+  });
+  const sorted=Object.values(areas).sort((a,b)=>b.total-a.total);
+  document.getElementById('ovAreaTable').innerHTML = sorted.length
+    ? `<div class="ftable-wrap"><table class="ftable" style="min-width:400px">
+        <thead><tr><th>Unit</th><th>Area</th><th>Parts</th><th>Stok Rendah</th><th>Critical</th></tr></thead>
+        <tbody>${sorted.map(a=>`<tr onclick="goToArea('${esc(a.unitId)}','${esc(a.areaId)}')" style="cursor:pointer">
+          <td>${esc(unitName(a.unitId))}</td><td>${esc(areaName(a.areaId))}</td>
+          <td><span class="chip">${a.total}</span></td>
+          <td>${a.low>0?`<span class="chip crit">${a.low}</span>`:'—'}</td>
+          <td>${a.crit>0?`<span class="chip crit">${a.crit}</span>`:'—'}</td>
+        </tr>`).join('')}</tbody>
+      </table></div>`
+    : '<div style="padding:20px;text-align:center;color:var(--text3)">Belum ada data</div>';
+}
+
+// ═══════════════════════════════════════════════════
+// ALL PARTS TABLE
+// ═══════════════════════════════════════════════════
+let ALL_PAGE=1, ALL_SORT_KEY='name', ALL_SORT_ASC=true;
+const ALL_PS=30;
+
+function renderAllParts() {
+  const q    = (document.getElementById('allQ')?.value||'').toLowerCase();
+  const fU   = document.getElementById('allUnit')?.value||'';
+  const fK   = document.getElementById('allKond')?.value||'';
+  const fLow = document.getElementById('allLow')?.checked||false;
+
+  let data = [...DB.parts];
+
+  // Filter by unit — need to look up equipId → equipment → unitId
+  if (fU) {
+    const equipIds = new Set(DB.equipment.filter(e=>e.unitId===fU).map(e=>e.id));
+    data = data.filter(p=>equipIds.has(p.equipId));
+  }
+  if (q) data = data.filter(p=>
+    (p.name||'').toLowerCase().includes(q)||
+    (partId(p)||'').toLowerCase().includes(q)||
+    (p.brand||'').toLowerCase().includes(q)||
+    (p.category||'').toLowerCase().includes(q)||
+    (p.location||'').toLowerCase().includes(q)
+  );
+  if (fK) data = data.filter(p=>p.condition===fK);
+  if (fLow) data = data.filter(p=>p.minStock&&parseFloat(p.stock||0)<parseFloat(p.minStock));
+
+  data.sort((a,b)=>{
+    const av = ALL_SORT_KEY==='id' ? partId(a) : String(a[ALL_SORT_KEY]||'');
+    const bv = ALL_SORT_KEY==='id' ? partId(b) : String(b[ALL_SORT_KEY]||'');
+    if(ALL_SORT_KEY==='stock'||ALL_SORT_KEY==='minStock')
+      return ALL_SORT_ASC?parseFloat(av||0)-parseFloat(bv||0):parseFloat(bv||0)-parseFloat(av||0);
+    return ALL_SORT_ASC?av.localeCompare(bv):bv.localeCompare(av);
+  });
+
+  const total=data.length, pages=Math.max(1,Math.ceil(total/ALL_PS));
+  if(ALL_PAGE>pages) ALL_PAGE=1;
+  const slice=data.slice((ALL_PAGE-1)*ALL_PS, ALL_PAGE*ALL_PS);
+  const si=k=>`<span style="opacity:${ALL_SORT_KEY===k?1:.35}">${ALL_SORT_KEY===k?(ALL_SORT_ASC?'↑':'↓'):'⇕'}</span>`;
+  const th=(k,lbl)=>`<th onclick="sortAll('${k}')" style="cursor:pointer">${lbl} ${si(k)}</th>`;
+
+  // Enrich with unit/area/equipment names
+  document.getElementById('allPartsWrap').innerHTML=`
+    <div class="ftable-wrap"><table class="ftable">
+      <thead><tr>
+        ${th('id','ID')}${th('name','Nama Part')}${th('equipId','Equipment')}
+        ${th('category','Kategori')}${th('brand','Brand')}${th('oem','Spesifikasi')}
+        ${th('stock','Stok')}<th>UoM</th>${th('condition','Kondisi')}
+        <th>Lokasi</th>
+      </tr></thead>
+      <tbody>${slice.map(p=>{
+        const eq=DB.equipment.find(e=>e.id===p.equipId);
+        const unitNm=eq?unitName(eq.unitId):'—';
+        const areaNm=eq?areaName(eq.areaId):'—';
+        const pid=partId(p);
+        const low=p.minStock&&parseFloat(p.stock||0)<parseFloat(p.minStock);
+        return `<tr class="${low?'alert-row':p.condition==='Warning'?'warn-row':''}"
+          onclick="goToPart('${esc(pid)}')">
+          <td style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--accent)">${esc(pid)}</td>
+          <td style="font-weight:600">${esc(p.name)}</td>
+          <td style="font-size:11px">
+            <div style="font-weight:500">${esc(eq?.name||p.equipId||'—')}</div>
+            <div style="color:var(--text3);font-size:10px">${unitNm} › ${areaNm}</div>
+          </td>
+          <td><span class="chip blue" style="font-size:10px">${esc(p.category||'—')}</span></td>
+          <td style="font-size:11px">${esc(p.brand||'—')}</td>
+          <td style="font-size:11px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"
+            title="${esc(partSpec(p))}">${esc((partSpec(p)||'—').slice(0,50))}</td>
+          <td style="text-align:right;font-family:'IBM Plex Mono',monospace;${low?'color:var(--red);font-weight:700':''}">${p.stock!==undefined&&p.stock!==''?p.stock:'—'}</td>
+          <td style="font-size:11px;color:var(--text3)">${esc(p.uom||'—')}</td>
+          <td><span class="chip ${kondisiClass(p.condition)}">${esc(p.condition||'—')}</span></td>
+          <td style="font-size:11px;color:var(--text3)">${esc((p.location||'—').slice(0,30))}</td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table></div>`;
+
+  document.getElementById('allPagination').innerHTML=
+    `<span class="page-info">${(ALL_PAGE-1)*ALL_PS+1}–${Math.min(ALL_PAGE*ALL_PS,total)} dari ${total}</span>
+     <button class="pnav" ${ALL_PAGE<=1?'disabled':''} onclick="allPageNav(-1)">← Prev</button>
+     <button class="pnav" ${ALL_PAGE>=pages?'disabled':''} onclick="allPageNav(1)">Next →</button>`;
+}
+function sortAll(k){ ALL_SORT_ASC=ALL_SORT_KEY===k?!ALL_SORT_ASC:true; ALL_SORT_KEY=k; ALL_PAGE=1; renderAllParts(); }
+function allPageNav(d){ ALL_PAGE+=d; renderAllParts(); }
+
+function exportAllParts() {
+  if(!DB.parts.length){ toast('Tidak ada data','error'); return; }
+  const cols=['name','equipId','category','brand','oem','stock','minStock','uom','condition','location','notes'];
+  const hdr=['ID','Nama Part','Equipment ID','Kategori','Brand','Spesifikasi','Stok','Stok Min','UoM','Kondisi','Lokasi','Catatan'];
+  const csv=[hdr,...DB.parts.map(p=>[partId(p),...cols.map(c=>'"'+String(p[c]||'').replace(/"/g,'""')+'"')])].map(r=>r.join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'}));
+  a.download='Equipment_Parts.csv'; a.click();
+  toast('Export berhasil','success');
+}
+
+// ═══════════════════════════════════════════════════
+// NAV HELPERS
+// ═══════════════════════════════════════════════════
+function goToPart(pid) {
+  const p=DB.parts.find(x=>partId(x)===pid); if(!p) return;
+  const eq=DB.equipment.find(e=>e.id===p.equipId); if(!eq) return;
+  switchPage('explorer');
+  navEquipFromSidebar(eq.unitId, unitName(eq.unitId), eq.areaId, areaName(eq.areaId), eq.id, eq.name);
+  setTimeout(()=>{ selectPart(pid); }, 50);
+}
+function goToArea(unitId, areaId) {
+  switchPage('explorer');
+  navAreaFromSidebar(unitId, unitName(unitId), areaId, areaName(areaId));
+}
+function filterLowStock(){ switchPage('all-parts'); document.getElementById('allLow').checked=true; renderAllParts(); }
+function filterCritical(){ switchPage('all-parts'); document.getElementById('allKond').value='Critical'; renderAllParts(); }
+
+// ═══════════════════════════════════════════════════
+// IMAGES (tetap berfungsi untuk foto yang ditambah manual)
+// ═══════════════════════════════════════════════════
+let FORM_IMGS=[];
+function triggerImgUpload(){ document.getElementById('imgInput').click(); }
+function handleImgUpload(input){
+  const files=Array.from(input.files); const remain=3-FORM_IMGS.length;
+  files.slice(0,remain).forEach(f=>{
+    const reader=new FileReader();
+    reader.onload=e=>{ FORM_IMGS.push(e.target.result); renderFormImgGrid(); };
+    reader.readAsDataURL(f);
+  });
+  if(files.length>remain) toast('Maksimal 3 foto','error');
+  input.value='';
+}
+function renderFormImgGrid(){
+  const grid=document.getElementById('fImgGrid'); if(!grid) return;
+  grid.innerHTML=FORM_IMGS.map((src,i)=>`<div class="img-thumb"><img src="${src}" alt=""/><button class="img-del" onclick="removeFormImg(${i})">✕</button></div>`).join('');
+  if(FORM_IMGS.length<3) grid.innerHTML+=`<div class="img-add" onclick="triggerImgUpload()"><span style="font-size:22px">📷</span><span>Tambah Foto</span></div>`;
+}
+function removeFormImg(i){ FORM_IMGS.splice(i,1); renderFormImgGrid(); }
+function openLightbox(src){ document.getElementById('lbImg').src=src; document.getElementById('lightbox').classList.add('open'); }
+
+// ═══════════════════════════════════════════════════
+// HELPER untuk expand row
+// ═══════════════════════════════════════════════════
+function expandHistRowDetail(row, title, notes, parts, extra) {
+  const nxt=row.nextElementSibling;
+  if(nxt&&nxt.classList.contains('hist-expand')){ nxt.remove(); return; }
+  const tr=document.createElement('tr'); tr.className='hist-expand';
+  tr.innerHTML=`<td colspan="6" style="padding:10px 12px;background:var(--bg3);font-size:12px;cursor:default;border-bottom:1px solid var(--border)">
+    ${title?`<div style="margin-bottom:4px"><b style="color:var(--text3);font-size:10px">JUDUL:</b> ${esc(title)}</div>`:''}
+    ${notes?`<div style="margin-bottom:4px"><b style="color:var(--green2);font-size:10px">CATATAN:</b> ${esc(notes)}</div>`:''}
+    ${parts?`<div><b style="color:var(--blue);font-size:10px">PARTS:</b> ${esc(parts)}</div>`:''}
+  </td>`;
+  row.after(tr);
+}
+
+// ═══════════════════════════════════════════════════
+// GAS HELPERS
+// ═══════════════════════════════════════════════════
+function copyGAS(){
+  const code=document.getElementById('gasCodeBlock')?.textContent||'';
+  navigator.clipboard.writeText(code).then(()=>toast('Kode disalin','success')).catch(()=>toast('Gagal salin','error'));
+}
+function fillSSId(){
+  const id=prompt('Masukkan Spreadsheet ID:');
+  if(!id) return;
+  const el=document.getElementById('gasCodeBlock');
+  if(el) el.textContent=el.textContent.replace('GANTI_DENGAN_ID_SPREADSHEET_KAMU',id);
+  toast('ID sudah diisi','success');
+}
+function saveCfgFromGas(){
+  // API sudah hardcoded, tidak perlu simpan
+  toast('API sudah terkonfigurasi langsung di kode','info');
+  syncAll();
+}
+
+// ═══════════════════════════════════════════════════
+// MODAL PART — partModal masih ada di HTML (legacy),
+// tapi di DB ini read-only jadi form tidak dipakai.
+// ═══════════════════════════════════════════════════
+// PART FORM — Tambah & Edit Part langsung dari HTML
+// Menyimpan ke Google Sheets via action=upsertPart
+// ═══════════════════════════════════════════════════
+
+function openPartForm(pid) {
+  // Reset form
+  ['pfName','pfBrand','pfSpec','pfLocation','pfNotes'].forEach(id=>setVal(id,''));
+  ['pfStock','pfMinStock'].forEach(id=>setVal(id,''));
+  setVal('pfCategory',''); setVal('pfUom',''); setVal('pfCondition','Good');
+  setVal('pfId',''); setVal('pfEquipId','');
+  document.getElementById('e-pfName').textContent='';
+  document.getElementById('pfSaveStatus').style.display='none';
+
+  if (pid) {
+    // ── Mode EDIT ──
+    const p = DB.parts.find(x=>partId(x)===pid);
+    if (!p) { toast('Part tidak ditemukan','error'); return; }
+    setVal('pfId',   partId(p));
+    setVal('pfEquipId', p.equipId);
+    setVal('pfName', p.name);
+    setVal('pfCategory', p.category||'');
+    setVal('pfBrand', p.brand||'');
+    setVal('pfSpec',  p.oem||p.Specs||p.spec||'');
+    setVal('pfStock', p.stock!==undefined?p.stock:'');
+    setVal('pfMinStock', p.minStock!==undefined?p.minStock:'');
+    setVal('pfUom',  p.uom||'');
+    setVal('pfCondition', p.condition||'Good');
+    setVal('pfLocation', p.location||'');
+    setVal('pfNotes', p.notes||'');
+    document.getElementById('partFormTitle').textContent = '✏ Edit Part';
+    document.getElementById('pfDeleteBtn').style.display = 'inline-flex';
+  } else {
+    // ── Mode TAMBAH ──
+    if (!NAV.equipId) { toast('Pilih equipment terlebih dahulu','error'); return; }
+    setVal('pfEquipId', NAV.equipId);
+    document.getElementById('partFormTitle').textContent = '+ Tambah Part Baru';
+    document.getElementById('pfDeleteBtn').style.display = 'none';
+  }
+
+  // Label equipment
+  const eqLabel = NAV.equipId
+    ? `${NAV.unitName} › ${NAV.areaName} › ${NAV.equipName}`
+    : (pid ? (DB.equipment.find(e=>e.id===DB.parts.find(x=>partId(x)===pid)?.equipId)?.name||'—') : '—');
+  document.getElementById('partFormEquipLabel').textContent = '🔧 ' + eqLabel;
+
+  document.getElementById('partFormModal').classList.add('open');
+}
+
+function closePartForm() {
+  document.getElementById('partFormModal').classList.remove('open');
+}
+
+async function savePart() {
+  const name = val('pfName').trim();
+  if (!name) {
+    document.getElementById('e-pfName').textContent = 'Nama part wajib diisi';
+    return;
+  }
+  document.getElementById('e-pfName').textContent = '';
+
+  const equipId = val('pfEquipId');
+  if (!equipId) { toast('Equipment tidak diketahui — pilih equipment dulu','error'); return; }
+
+  const existId = val('pfId');
+  const isEdit  = !!existId;
+
+  // Generate ID baru jika tambah
+  const newId = isEdit ? existId : 'PT-' + Date.now().toString().slice(-6);
+
+  // Bangun row sesuai EQ_HEADERS SHEET_EQ_PARTS:
+  // ['id','name','equipId','category','brand','oem','stock','minStock','uom','condition','location','notes']
+  const row = {
+    id:        newId,
+    name:      name,
+    equipId:   equipId,
+    category:  val('pfCategory'),
+    brand:     val('pfBrand').trim(),
+    oem:       val('pfSpec').trim(),
+    stock:     val('pfStock') !== '' ? parseFloat(val('pfStock')) : '',
+    minStock:  val('pfMinStock') !== '' ? parseFloat(val('pfMinStock')) : '',
+    uom:       val('pfUom'),
+    condition: val('pfCondition'),
+    location:  val('pfLocation').trim(),
+    notes:     val('pfNotes').trim(),
+  };
+
+  // Tampilkan status loading
+  const statusEl = document.getElementById('pfSaveStatus');
+  const saveBtn  = document.getElementById('pfSaveBtn');
+  statusEl.style.display = 'block';
+  statusEl.style.background = 'rgba(43,108,184,.08)';
+  statusEl.style.color = 'var(--blue)';
+  statusEl.style.border = '1px solid rgba(43,108,184,.2)';
+  statusEl.textContent = '⟳ Menyimpan ke Google Sheets...';
+  saveBtn.disabled = true;
+
+  try {
+    const res  = await fetch(API_URL + '?fn=upsert', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ sheet: 'EQ_PARTS', row }),
+      signal:  AbortSignal.timeout(20000),
+    });
+    const json = await res.json();
+    console.log('[SAVE] Response:', JSON.stringify(json).slice(0,200));
+    // GAS jsonOk({ok:true}) → { success:true, ok:true }
+    const ok   = json.ok || json.success;
+
+    if (ok) {
+      // Update lokal DB supaya langsung terlihat tanpa reload
+      if (isEdit) {
+        const idx = DB.parts.findIndex(p=>partId(p)===existId);
+        if (idx >= 0) DB.parts[idx] = { ...DB.parts[idx], ...row, id: newId };
+      } else {
+        DB.parts.push({ ...row, id: newId });
+      }
+      saveCache();
+
+      statusEl.style.background = 'rgba(74,158,63,.08)';
+      statusEl.style.color      = 'var(--green2)';
+      statusEl.style.border     = '1px solid rgba(74,158,63,.25)';
+      statusEl.textContent      = '✓ Berhasil disimpan ke Google Sheets!';
+
+      toast(isEdit ? 'Part berhasil diperbarui' : 'Part berhasil ditambahkan', 'success');
+
+      // Re-render explorer & detail
+      renderExplorer();
+      if (isEdit) { renderDetail(newId); }
+      else { ACTIVE_PART_ID = newId; openDetailPanel(); renderDetail(newId); }
+
+      // Tutup modal setelah 800ms
+      setTimeout(() => closePartForm(), 800);
+    } else {
+      throw new Error(json.message || 'GAS mengembalikan error');
+    }
+  } catch(e) {
+    statusEl.style.background = 'rgba(192,57,43,.07)';
+    statusEl.style.color      = 'var(--red)';
+    statusEl.style.border     = '1px solid rgba(192,57,43,.25)';
+    const isTimeout = e.name==='AbortError' || e.name==='TimeoutError';
+    statusEl.textContent = '✗ Gagal: ' + (isTimeout ? 'Timeout — cek koneksi internet' : e.message);
+    toast('Gagal menyimpan: '+e.message, 'error');
+  } finally {
+    saveBtn.disabled = false;
+  }
+}
+
+async function deletePartFromForm() {
+  const pid = val('pfId');
+  if (!pid) return;
+  const p   = DB.parts.find(x=>partId(x)===pid);
+  if (!confirm(`Hapus part "${p?.name||pid}"?\n\nData akan dihapus dari Google Sheets dan tidak bisa dikembalikan.`)) return;
+
+  const saveBtn = document.getElementById('pfSaveBtn');
+  saveBtn.disabled = true;
+
+  try {
+    const res  = await fetch(API_URL + '?fn=delete', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ sheet: 'EQ_PARTS', id: pid }),
+      signal:  AbortSignal.timeout(15000),
+    });
+    const json = await res.json();
+    const ok   = json.ok || json.success;
+
+    if (ok) {
+      DB.parts = DB.parts.filter(x=>partId(x)!==pid);
+      saveCache();
+      closePartForm();
+      closeDetailPanel();
+      ACTIVE_PART_ID = null;
+      renderExplorer();
+      renderTree();
+      toast('Part berhasil dihapus', 'success');
+    } else throw new Error(json.message||'GAS error');
+  } catch(e) {
+    toast('Gagal hapus: '+e.message, 'error');
+    saveBtn.disabled = false;
+  }
+}
+
+function closeModal(){
+  closePartForm();
+  const m=document.getElementById('partModal');
+  if(m) m.classList.remove('open');
+}
+function saveConfig(){
+  toast('API sudah terkonfigurasi langsung di kode HTML','info');
+  const m=document.getElementById('cfgModal');
+  if(m) m.classList.remove('open');
+}
+function saveHistEntry(){
+  toast('History diambil otomatis dari EQ_REPAIR_HISTORY di Sheets','info');
+  const m=document.getElementById('addHistModal');
+  if(m) m.classList.remove('open');
+}
+function exportParts(){
+  // Export parts untuk equipment yang sedang dipilih
+  if(!SEL.equipId){ toast('Pilih equipment terlebih dahulu','error'); return; }
+  const parts=partsFor(SEL.equipId);
+  if(!parts.length){ toast('Tidak ada parts untuk diekspor','error'); return; }
+  const cols=['id','name','equipId','category','brand','oem','stock','minStock','uom','condition','location','notes'];
+  const hdr=['ID','Nama Part','Equipment ID','Kategori','Brand','Spesifikasi','Stok','Stok Min','UoM','Kondisi','Lokasi','Catatan'];
+  const csv=[hdr,...parts.map(p=>cols.map(c=>'"'+String(p[c]||'').replace(/"/g,'""')+'"'))].map(r=>r.join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'}));
+  a.download='Parts_'+SEL.equipName.replace(/\s+/g,'_')+'.csv'; a.click();
+  toast('Export berhasil','success');
+}
+
+// ═══════════════════════════════════════════════════
+// DARK MODE
+// ═══════════════════════════════════════════════════
+function toggleDark(){
+  document.body.classList.toggle('dark');
+  try{ localStorage.setItem('prasad_edb_theme',document.body.classList.contains('dark')?'dark':'light'); }catch(e){}
+}
+
+// ═══════════════════════════════════════════════════
+// PAGE SWITCH
+// ═══════════════════════════════════════════════════
+function switchPage(p){
+  document.getElementById('pg-explorer').style.display   = p==='explorer'?'flex':'none';
+  ['overview','all-parts','gas-setup'].forEach(id=>{
+    const el=document.getElementById('pg-'+id);
+    if(el) el.classList.toggle('active', p===id);
+  });
+  document.querySelectorAll('.top-tab').forEach(el=>{
+    const t=el.id?.replace('tab-','');
+    el.classList.toggle('active', t===p);
+  });
+  if(p==='overview')  renderOverview();
+  if(p==='all-parts'){ ALL_PAGE=1; renderAllParts(); }
+}
+
+// ═══════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', ()=>{
+  try{ if(localStorage.getItem('prasad_edb_theme')==='dark') document.body.classList.add('dark'); }catch(e){}
+
+  // Load cache dulu agar UI langsung muncul
+  loadCache();
+
+  const pill=document.getElementById('apiPill');
+  if(DB.units.length){
+    pill.className='api-pill ok';
+    pill.textContent='✓ Cache '+DB.equipment.length+' equip';
+    renderTree();
+    renderBreadcrumb();
+    renderExplorer();
+  } else {
+    pill.className='api-pill warn';
+    pill.textContent='⟳ Memuat...';
+  }
+
+  // Sync dari GAS
+  syncAll();
+});
+</script>
+</body>
+</html>
