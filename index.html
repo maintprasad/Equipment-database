@@ -1156,9 +1156,26 @@ function renderExplorer() {
     if (!DB.units.length) { el.innerHTML=loadingHtml(); return; }
     let html = `<div class="exp-section-title"><span>Units (${DB.units.length})</span></div><div class="exp-grid">`;
     DB.units.forEach(u => {
-      const areaCnt = DB.areas.filter(a=>a.unitId===u.id).length;
+      const allEquips = DB.equipment.filter(e=>e.unitId===u.id);
+      const equipsWithParts = allEquips.filter(e=>partsFor(e.id).length>0);
+      const equipsNoParts   = allEquips.filter(e=>partsFor(e.id).length===0);
       const partCnt = DB.parts.filter(p=>{ const eq=DB.equipment.find(e=>e.id===p.equipId); return eq&&eq.unitId===u.id; }).length;
-      html += `<div class="exp-folder" onclick="navTo('unit','${esc(u.id)}','${esc(u.name)}')"><div class="exp-folder-icon">🏭</div><div class="exp-folder-name">${esc(u.name)}</div><div class="exp-folder-meta">${areaCnt} area</div>${partCnt>0?`<span class="exp-folder-badge">${partCnt}</span>`:''}</div>`;
+      const areaCnt = DB.areas.filter(a=>a.unitId===u.id).length;
+      html += `<div class="exp-folder" onclick="navTo('unit','${esc(u.id)}','${esc(u.name)}')">
+        <div class="exp-folder-icon">🏭</div>
+        <div class="exp-folder-name">${esc(u.name)}</div>
+        <div class="exp-folder-meta">${areaCnt} area · ${allEquips.length} equip</div>
+        <div style="margin-top:6px;display:flex;flex-direction:column;gap:3px;width:100%">
+          <div style="display:flex;justify-content:space-between;font-size:10px">
+            <span style="color:var(--green2)">✓ ${equipsWithParts.length} ada parts</span>
+            <span style="color:${equipsNoParts.length>0?'var(--orange)':'var(--text3)'}">○ ${equipsNoParts.length} kosong</span>
+          </div>
+          <div style="height:4px;background:var(--border);border-radius:3px;overflow:hidden">
+            <div style="height:100%;background:var(--green);border-radius:3px;width:${allEquips.length?Math.round(equipsWithParts.length/allEquips.length*100):0}%"></div>
+          </div>
+          <div style="font-size:10px;color:var(--text3);text-align:center">${partCnt} parts total</div>
+        </div>
+      </div>`;
     });
     el.innerHTML = html + '</div>'; return;
   }
@@ -1166,9 +1183,25 @@ function renderExplorer() {
     const areas = DB.areas.filter(a=>a.unitId===NAV.unitId);
     let html = `<div class="exp-section-title"><span>Area di ${esc(NAV.unitName)} (${areas.length})</span></div><div class="exp-grid">`;
     areas.forEach(a => {
-      const eqCnt   = DB.equipment.filter(e=>e.areaId===a.id).length;
+      const equips          = DB.equipment.filter(e=>e.areaId===a.id);
+      const equipsWithParts = equips.filter(e=>partsFor(e.id).length>0);
+      const equipsNoParts   = equips.filter(e=>partsFor(e.id).length===0);
       const partCnt = DB.parts.filter(p=>{ const eq=DB.equipment.find(e=>e.id===p.equipId); return eq&&eq.areaId===a.id; }).length;
-      html += `<div class="exp-folder" onclick="navTo('area','${esc(a.id)}','${esc(a.name)}')"><div class="exp-folder-icon">📂</div><div class="exp-folder-name">${esc(a.name)}</div><div class="exp-folder-meta">${eqCnt} equipment</div>${partCnt>0?`<span class="exp-folder-badge">${partCnt}</span>`:''}</div>`;
+      html += `<div class="exp-folder" onclick="navTo('area','${esc(a.id)}','${esc(a.name)}')">
+        <div class="exp-folder-icon">📂</div>
+        <div class="exp-folder-name">${esc(a.name)}</div>
+        <div class="exp-folder-meta">${equips.length} equipment</div>
+        <div style="margin-top:6px;display:flex;flex-direction:column;gap:3px;width:100%">
+          <div style="display:flex;justify-content:space-between;font-size:10px">
+            <span style="color:var(--green2)">✓ ${equipsWithParts.length} ada parts</span>
+            <span style="color:${equipsNoParts.length>0?'var(--orange)':'var(--text3)'}">○ ${equipsNoParts.length} kosong</span>
+          </div>
+          <div style="height:4px;background:var(--border);border-radius:3px;overflow:hidden">
+            <div style="height:100%;background:var(--green);border-radius:3px;width:${equips.length?Math.round(equipsWithParts.length/equips.length*100):0}%"></div>
+          </div>
+          <div style="font-size:10px;color:var(--text3);text-align:center">${partCnt} parts total</div>
+        </div>
+      </div>`;
     });
     el.innerHTML = html + '</div>'; return;
   }
